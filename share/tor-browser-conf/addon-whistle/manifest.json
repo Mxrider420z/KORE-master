@@ -1,0 +1,27 @@
+{
+
+  "description": "WhistleBlowing Menu",
+  "manifest_version": 2,
+  "name": "Kore Whistle Blowing",
+  "version": "1.1",
+ 
+  "browser_action": {
+    "browser_style": true,
+    "default_popup": "popup/choose_page.html",
+    "default_icon": {
+      "16": "icons/whistle-16.png",
+      "32": "icons/whistle-32.png"
+    }
+  },
+  
+  "permissions": [
+    "browsingData",
+    "history",
+    "cookies",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ]
+}
+
