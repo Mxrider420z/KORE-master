@@ -1173,8 +1173,7 @@ AC_SUBST(PROTOBUF_LIBS)
 AC_SUBST(QR_LIBS)
 
 # ===========================================================================
-# SAFE FLAG CHECKING (Works without autoconf-archive)
-# ===========================================================================
+
 saved_cxxflags="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS -Wno-error"
 AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
@@ -1207,8 +1206,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 AC_CONFIG_FILES([Makefile src/Makefile share/setup.nsi share/qt/Info.plist src/test/buildenv.py])
 
 # ===========================================================================
-# SAFE FLAG CHECKING (Works without autoconf-archive)
-# ===========================================================================
+
 saved_cxxflags="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS -Wno-error"
 AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
@@ -1241,8 +1239,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 AC_CONFIG_FILES([qa/pull-tester/run-bitcoind-for-test.sh],[chmod +x qa/pull-tester/run-bitcoind-for-test.sh])
 
 # ===========================================================================
-# SAFE FLAG CHECKING (Works without autoconf-archive)
-# ===========================================================================
+
 saved_cxxflags="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS -Wno-error"
 AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
@@ -1275,8 +1272,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 AC_CONFIG_FILES([qa/pull-tester/tests-config.sh],[chmod +x qa/pull-tester/tests-config.sh])
 
 # ===========================================================================
-# SAFE FLAG CHECKING (Works without autoconf-archive)
-# ===========================================================================
+
 saved_cxxflags="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS -Wno-error"
 AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
@@ -1309,8 +1305,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 AC_CONFIG_FILES([contrib/devtools/split-debug.sh],[chmod +x contrib/devtools/split-debug.sh])
 
 # ===========================================================================
-# SAFE FLAG CHECKING (Works without autoconf-archive)
-# ===========================================================================
+
 saved_cxxflags="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS -Wno-error"
 AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
@@ -1371,6 +1366,43 @@ fi
 
 ac_configure_args="${ac_configure_args} --disable-shared --with-pic --enable-module-recovery"
 AC_CONFIG_SUBDIRS([src/secp256k1])
+
+
+# ===========================================================================
+# ROBUST COMPILER FLAG CHECKS (Simple Shell Method)
+# ===========================================================================
+AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
+if ${CXX} -Wno-error -E - < /dev/null > /dev/null 2>&1; then
+  CXXFLAGS="$CXXFLAGS -Wno-error"
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([if ${CXX} supports -fpermissive])
+if ${CXX} -fpermissive -E - < /dev/null > /dev/null 2>&1; then
+  CXXFLAGS="$CXXFLAGS -fpermissive"
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([if ${CXX} supports -Wno-nonnull])
+if ${CXX} -Wno-nonnull -E - < /dev/null > /dev/null 2>&1; then
+  CXXFLAGS="$CXXFLAGS -Wno-nonnull"
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([if ${CXX} supports -Wno-deprecated-declarations])
+if ${CXX} -Wno-deprecated-declarations -E - < /dev/null > /dev/null 2>&1; then
+  CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+# ===========================================================================
 
 AC_OUTPUT
 
