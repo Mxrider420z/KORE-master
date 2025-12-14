@@ -1,0 +1,10 @@
+Package: kore
+Version: 0.13.2.13
+Architecture: amd64
+Maintainer: Kore <dev@kore.com>
+Installed-Size: 42105
+Section: unknown
+Priority: optional
+Homepage: https://kore.life/
+Description: Kore is a wallet for Kore crypto coins.
+ Kore is a wallet for Kore crypto coins.

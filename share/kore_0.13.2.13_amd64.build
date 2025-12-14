@@ -1,0 +1,111 @@
+ dpkg-buildpackage -us -uc -ui
+dpkg-buildpackage: info: source package kore
+dpkg-buildpackage: info: source version 0.13.2.13
+dpkg-buildpackage: info: source distribution stable
+dpkg-buildpackage: info: source changed by Kore <dev@kore.com>
+ dpkg-source --before-build .
+dpkg-buildpackage: info: host architecture amd64
+ fakeroot debian/rules clean
+dh clean 
+dh: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_clean
+dh_clean: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+ dpkg-source -b .
+dpkg-source: info: using source format '3.0 (native)'
+dpkg-source: info: building kore in kore_0.13.2.13.tar.xz
+dpkg-source: info: building kore in kore_0.13.2.13.dsc
+ debian/rules build
+dh build 
+dh: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_update_autotools_config
+ fakeroot debian/rules binary
+dh binary 
+dh: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_testroot
+   dh_prep
+   dh_auto_install --destdir=debian/kore/
+dh_auto_install: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_install
+dh_install: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_installdocs
+dh_installdocs: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_installchangelogs
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+dh_compress: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_fixperms
+   dh_missing
+dh_missing: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_strip
+dh_strip: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_makeshlibs
+dh_makeshlibs: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_shlibdeps
+dh_shlibdeps: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_installdeb
+dh_installdeb: warning: Compatibility levels before 10 are deprecated (level 9 in use)
+   dh_gencontrol
+dpkg-gencontrol: warning: package kore: substitution variable ${shlibs:Depends} unused, but is defined
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'kore' in '../kore_0.13.2.13_amd64.deb'.
+ dpkg-genbuildinfo -O../kore_0.13.2.13_amd64.buildinfo
+ dpkg-genchanges -O../kore_0.13.2.13_amd64.changes
+dpkg-genchanges: info: including full source code in upload
+ dpkg-source --after-build .
+dpkg-buildpackage: info: full upload; Debian-native package (full source is included)
+Now running lintian kore_0.13.2.13_amd64.changes ...
+E: kore changes: bad-distribution-in-changes-file stable
+E: kore: copyright-contains-dh_make-todo-boilerplate
+E: kore source: debian-rules-is-dh_make-template
+E: kore: description-starts-with-package-name
+E: kore: description-synopsis-is-duplicated line 1
+E: kore: dir-in-usr-local usr/local/share/
+E: kore: dir-in-usr-local usr/local/share/kore/
+E: kore: dir-in-usr-local usr/local/share/kore/torbrowser-setup/
+E: kore: embedded-library libminiupnpc usr/local/share/kore/kore-qt
+E: kore: embedded-library libminiupnpc usr/local/share/kore/kored
+E: kore: embedded-library openssl usr/local/share/kore/kore-cli
+E: kore: embedded-library openssl usr/local/share/kore/kore-qt
+E: kore: embedded-library openssl usr/local/share/kore/kored
+E: kore: embedded-library zlib usr/local/share/kore/kore-qt
+E: kore: embedded-library zlib usr/local/share/kore/kored
+E: kore: file-in-usr-local usr/local/share/kore/kore-cli
+E: kore: file-in-usr-local usr/local/share/kore/kore-qt
+E: kore: file-in-usr-local usr/local/share/kore/kore-qt.png
+E: kore: file-in-usr-local usr/local/share/kore/kored
+E: kore: file-in-usr-local usr/local/share/kore/obfs4proxy
+E: kore: file-in-usr-local usr/local/share/kore/torbrowser-setup.tar.xz
+E: kore: file-in-usr-local usr/local/share/kore/torbrowser-setup/local-settings.js
+E: kore: file-in-usr-local usr/local/share/kore/torbrowser-setup/mozilla.cfg
+E: kore: file-in-usr-local usr/local/share/kore/torbrowser-setup/user.js
+E: kore: file-in-usr-local usr/local/share/kore/torbrowser-setup/{f47ca0a8-45b9-467e-8e4f-00d4fdb5acf1}.xpi
+E: kore: forbidden-postrm-interpreter /usr/bin/env [postrm]
+E: kore: helper-templates-in-copyright
+E: kore source: readme-source-is-dh_make-template
+E: kore: section-is-dh_make-template
+E: kore: unknown-control-interpreter /usr/bin/env [postinst]
+W: kore: broken-xz usr/local/share/kore/torbrowser-setup.tar.xz
+W: kore: copyright-has-url-from-dh_make-boilerplate
+W: kore: file-in-unusual-dir usr/local/share/kore/kore-cli
+W: kore: file-in-unusual-dir usr/local/share/kore/kore-qt
+W: kore: file-in-unusual-dir usr/local/share/kore/kore-qt.png
+W: kore: file-in-unusual-dir usr/local/share/kore/kored
+W: kore: file-in-unusual-dir usr/local/share/kore/obfs4proxy
+W: kore: file-in-unusual-dir usr/local/share/kore/torbrowser-setup.tar.xz
+W: kore: file-in-unusual-dir usr/local/share/kore/torbrowser-setup/local-settings.js
+W: kore: file-in-unusual-dir usr/local/share/kore/torbrowser-setup/mozilla.cfg
+W: kore: file-in-unusual-dir usr/local/share/kore/torbrowser-setup/user.js
+W: kore: file-in-unusual-dir usr/local/share/kore/torbrowser-setup/{f47ca0a8-45b9-467e-8e4f-00d4fdb5acf1}.xpi
+W: kore: hardening-no-pie [usr/local/share/kore/obfs4proxy]
+W: kore: hardening-no-relro [usr/local/share/kore/obfs4proxy]
+W: kore source: no-newline-at-end debian/changelog
+W: kore source: package-uses-deprecated-debhelper-compat-version 9
+W: kore: readme-debian-contains-debmake-template
+W: kore: undeclared-elf-prerequisites usr/local/share/kore/kore-cli (ld-linux-x86-64.so.2 libc.so.6)
+W: kore: undeclared-elf-prerequisites usr/local/share/kore/kore-qt (ld-linux-x86-64.so.2 libQt5Core.so.5 libQt5DBus.so.5 libQt5Gui.so.5 libQt5Network.so.5 libQt5Widgets.so.5 libc.so.6 libm.so.6)
+W: kore: undeclared-elf-prerequisites usr/local/share/kore/kored (ld-linux-x86-64.so.2 libc.so.6 libm.so.6)
+W: kore: undeclared-elf-prerequisites usr/local/share/kore/obfs4proxy (libc.so.6)
+Finished running lintian.

@@ -1,0 +1,10 @@
+./kore-qt.png
+./../../release/kore-qt
+./../../release/kore-cli
+./../../release/kored
+./../../release/obfs4proxy
+./../../release/torbrowser-setup.tar.xz
+./../tor-browser-conf/local-settings.js
+./../tor-browser-conf/mozilla.cfg
+./../tor-browser-conf/user.js
+./../tor-browser-conf/{f47ca0a8-45b9-467e-8e4f-00d4fdb5acf1}.xpi

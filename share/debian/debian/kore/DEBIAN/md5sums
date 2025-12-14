@@ -1,0 +1,13 @@
+7bb1f31f99733b4bd64ccb2b07871f78  usr/local/share/kore/kore-cli
+4696783767b3d76cbe266f368ba5ab73  usr/local/share/kore/kore-qt
+cd68c3014f57dcd429e48f599e717d16  usr/local/share/kore/kore-qt.png
+64e2d62b8c8bf0f852a46cba3076bba9  usr/local/share/kore/kored
+b40b0c0f8943cafeced8fc78aa2cc55f  usr/local/share/kore/obfs4proxy
+d41d8cd98f00b204e9800998ecf8427e  usr/local/share/kore/torbrowser-setup.tar.xz
+75fc04c6780cdecfc25f38fd7410e9d9  usr/local/share/kore/torbrowser-setup/local-settings.js
+f3660c2124e4a8fe8cd5473350724ad8  usr/local/share/kore/torbrowser-setup/mozilla.cfg
+cd10836558643d733040e2dc3155b95c  usr/local/share/kore/torbrowser-setup/user.js
+93d7fa94b4c9da8e5e59590b65fed3f5  usr/local/share/kore/torbrowser-setup/{f47ca0a8-45b9-467e-8e4f-00d4fdb5acf1}.xpi
+c9dadb47b4ed0e249f4692d9eb958d1b  usr/share/doc/kore/README.Debian
+22a5db413ae27f2b6a623e7884a77e02  usr/share/doc/kore/changelog.gz
+817d0e839a3b40cf952317f2cdb2c948  usr/share/doc/kore/copyright
