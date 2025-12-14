@@ -1203,7 +1203,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
     [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
 # ===========================================================================
 
-AC_CONFIG_FILES([Makefile src/Makefile share/setup.nsi share/qt/Info.plist src/test/buildenv.py])
+AC_CONFIG_FILES([Makefile src/Makefile src/univalue/Makefile share/setup.nsi share/qt/Info.plist src/test/buildenv.py])
 
 # ===========================================================================
 
@@ -1369,8 +1369,7 @@ AC_CONFIG_SUBDIRS([src/secp256k1])
 
 
 # ===========================================================================
-# ROBUST COMPILER FLAG CHECKS (Simple Shell Method)
-# ===========================================================================
+
 AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
 if ${CXX} -Wno-error -E - < /dev/null > /dev/null 2>&1; then
   CXXFLAGS="$CXXFLAGS -Wno-error"
