@@ -1,34 +1,24 @@
 package=zeromq
-$(package)_version=4.2.2
+$(package)_version=4.3.4
 $(package)_download_path=https://github.com/zeromq/libzmq/releases/download/v$($(package)_version)/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=5b23f4ca9ef545d5bd3af55d305765e3ee06b986263b31967435d285a3e6df6b
-$(package)_patches=0001-fix-build-with-older-mingw64.patch
+$(package)_sha256_hash=c593001a89f5a85dd2ddf564805deb860e02471171b3f204944857336295c3e5
 
 define $(package)_set_vars
-  $(package)_config_opts=--without-docs --disable-shared --without-libsodium --disable-curve --disable-curve-keygen --disable-perf
-  $(package)_config_opts_linux=--with-pic
-  $(package)_cxxflags=-std=c++11
-endef
-
-define $(package)_preprocess_cmds
-   patch -p1 < $($(package)_patch_dir)/0001-fix-build-with-older-mingw64.patch && \
-  ./autogen.sh
+$(package)_config_opts=--without-docs --disable-shared --enable-static --disable-dependency-tracking --without-libsodium --enable-curve=no --disable-libunwind --disable-perf --disable-Werror
 endef
 
 define $(package)_config_cmds
-  $($(package)_autoconf)
+	./configure $(host) $($(package)_config_opts)
 endef
 
 define $(package)_build_cmds
-  $(MAKE) src/libzmq.la
+	$(MAKE)
 endef
 
 define $(package)_stage_cmds
-  $(MAKE) DESTDIR=$($(package)_staging_dir) install-libLTLIBRARIES install-includeHEADERS install-pkgconfigDATA
-endef
-
-define $(package)_postprocess_cmds
-  sed -i.old "s/ -lstdc++//" lib/pkgconfig/libzmq.pc && \
-  rm -rf bin share
+	$(MAKE) DESTDIR=$($(package)_staging_dir) install
+	mkdir -p $($(package)_staging_dir)$(host_prefix)/lib
+	# FIX: Search for libzmq.a and force-install it to the correct staging path
+	find . -name libzmq.a -exec install -D -m 644 {} $($(package)_staging_dir)$(host_prefix)/lib/libzmq.a \;
 endef

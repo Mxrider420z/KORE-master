@@ -152,10 +152,14 @@ public:
         assert(genesis.hashMerkleRoot == uint256S("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
 
         // Primary DNS Seeder
-        vSeeds.push_back(CDNSSeedData("kore-dnsseed-1", "dnsseed.kore.life"));
-        vSeeds.push_back(CDNSSeedData("kore-dnsseed-2", "dnsseed2.kore.life"));
-        vSeeds.push_back(CDNSSeedData("kore-dnsseed-3", "dnsseed3.kore.life"));
-        vSeeds.push_back(CDNSSeedData("kore-dnsseed-4", "dnsseed4.kore.life"));				
+// vSeeds.push_back(CDNSSeedData("kore-dnsseed-1", "dnsseed.kore.life"));
+vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
+// vSeeds.push_back(CDNSSeedData("kore-dnsseed-2", "dnsseed2.kore.life"));
+vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
+// vSeeds.push_back(CDNSSeedData("kore-dnsseed-3", "dnsseed3.kore.life"));
+vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
+// vSeeds.push_back(CDNSSeedData("kore-dnsseed-4", "dnsseed4.kore.life"));				
+vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
 		
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
@@ -239,7 +243,8 @@ public:
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "kore-testnet.seed.fuzzbawls.pw"));
+// vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "kore-testnet.seed.fuzzbawls.pw"));
+vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
 
         checkpointData = {

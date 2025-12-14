@@ -1389,7 +1389,7 @@ void TorThread()
     tor_args.push_back("--HiddenServicePort");
     tor_args.push_back(std::to_string(Params().GetDefaultPort()));
     tor_args.push_back("--HiddenServiceVersion");
-    tor_args.push_back("2");    
+    tor_args.push_back("3");    
     tor_args.push_back("-f");
     tor_args.push_back((tor_directory / "torrc").string());
     tor_args.push_back("--DataDirectory");

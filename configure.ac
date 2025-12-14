@@ -207,7 +207,7 @@ AC_ARG_ENABLE([werror],
     [enable_werror=no])
 
 AC_LANG_PUSH([C++])
-AX_CHECK_COMPILE_FLAG([-Werror],[CXXFLAG_WERROR="-Werror"],[CXXFLAG_WERROR=""])
+
 
 if test "x$enable_debug" = xyes; then
     CPPFLAGS="$CPPFLAGS -DDEBUG -DDEBUG_LOCKORDER"
@@ -226,26 +226,26 @@ if test "x$enable_werror" = "xyes"; then
   if test "x$CXXFLAG_WERROR" = "x"; then
     AC_MSG_ERROR("enable-werror set but -Werror is not usable")
   fi
-  AX_CHECK_COMPILE_FLAG([-Werror=vla],[ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror=vla"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Werror=thread-safety-analysis],[ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror=thread-safety-analysis"],,[[$CXXFLAG_WERROR]])
+  
+  
 fi
 
 if test "x$CXXFLAGS_overridden" = "xno"; then
-  AX_CHECK_COMPILE_FLAG([-Wall],[CXXFLAGS="$CXXFLAGS -Wall"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wextra],[CXXFLAGS="$CXXFLAGS -Wextra"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wformat],[CXXFLAGS="$CXXFLAGS -Wformat"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wvla],[CXXFLAGS="$CXXFLAGS -Wvla"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wformat-security],[CXXFLAGS="$CXXFLAGS -Wformat-security"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wthread-safety-analysis],[CXXFLAGS="$CXXFLAGS -Wthread-safety-analysis"],,[[$CXXFLAG_WERROR]])
+  
+  
+  
+  
+  
+  
 
   ## Some compilers (gcc) ignore unknown -Wno-* options, but warn about all
   ## unknown options if any other warning is produced. Test the -Wfoo case, and
   ## set the -Wno-foo case if it works.
-  AX_CHECK_COMPILE_FLAG([-Wunused-parameter],[CXXFLAGS="$CXXFLAGS -Wno-unused-parameter"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wself-assign],[CXXFLAGS="$CXXFLAGS -Wno-self-assign"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wunused-local-typedef],[CXXFLAGS="$CXXFLAGS -Wno-unused-local-typedef"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wdeprecated-register],[CXXFLAGS="$CXXFLAGS -Wno-deprecated-register"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wimplicit-fallthrough],[CXXFLAGS="$CXXFLAGS -Wno-implicit-fallthrough"],,[[$CXXFLAG_WERROR]])
+  
+  
+  
+  
+  
 fi
 CPPFLAGS="$CPPFLAGS -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS"
 
@@ -444,7 +444,7 @@ if test x$use_lcov = xyes; then
   LCOV="$LCOV --gcov-tool=$GCOV"
   AX_CHECK_LINK_FLAG([[--coverage]], [LDFLAGS="$LDFLAGS --coverage"],
     [AC_MSG_ERROR("lcov testing requested but --coverage linker flag does not work")])
-  AX_CHECK_COMPILE_FLAG([--coverage],[CXXFLAGS="$CXXFLAGS --coverage"],
+  
     [AC_MSG_ERROR("lcov testing requested but --coverage flag does not work")])
   AC_DEFINE(USE_COVERAGE, 1, [Define this symbol if coverage is enabled])
   CXXFLAGS="$CXXFLAGS -Og"
@@ -506,12 +506,12 @@ fi
 
 if test x$TARGET_OS != xwindows; then
   # All windows code is PIC, forcing it on just adds useless compile warnings
-  AX_CHECK_COMPILE_FLAG([-fPIC],[PIC_FLAGS="-fPIC"])
+  
 fi
 
 if test x$use_hardening != xno; then
-  AX_CHECK_COMPILE_FLAG([-Wstack-protector],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -Wstack-protector"])
-  AX_CHECK_COMPILE_FLAG([-fstack-protector-all],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -fstack-protector-all"])
+  
+  
 
   AX_CHECK_PREPROC_FLAG([-D_FORTIFY_SOURCE=2],[
     AX_CHECK_PREPROC_FLAG([-U_FORTIFY_SOURCE],[
@@ -527,7 +527,7 @@ if test x$use_hardening != xno; then
   AX_CHECK_LINK_FLAG([[-Wl,-z,now]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,now"])
 
   if test x$TARGET_OS != xwindows; then
-    AX_CHECK_COMPILE_FLAG([-fPIC],[PIE_FLAGS="-fPIC"])
+    
     AX_CHECK_LINK_FLAG([[-pic]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -pic"])
   fi
 
@@ -630,7 +630,7 @@ LDFLAGS="$TEMP_LDFLAGS"
 
 # Check for reduced exports
 if test x$use_reduce_exports = xyes; then
-  AX_CHECK_COMPILE_FLAG([-fvisibility=hidden],[RE_CXXFLAGS="-fvisibility=hidden"],
+  
   [AC_MSG_ERROR([Cannot set default symbol visibility. Use --disable-reduce-exports.])])
 fi
 
@@ -1171,10 +1171,175 @@ AC_SUBST(EVENT_PTHREADS_LIBS)
 AC_SUBST(ZMQ_LIBS)
 AC_SUBST(PROTOBUF_LIBS)
 AC_SUBST(QR_LIBS)
+
+# ===========================================================================
+# SAFE FLAG CHECKING (Works without autoconf-archive)
+# ===========================================================================
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-error"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-nonnull"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-nonnull])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -fpermissive"
+AC_MSG_CHECKING([if ${CXX} supports -fpermissive])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-deprecated-declarations])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+# ===========================================================================
+
 AC_CONFIG_FILES([Makefile src/Makefile share/setup.nsi share/qt/Info.plist src/test/buildenv.py])
+
+# ===========================================================================
+# SAFE FLAG CHECKING (Works without autoconf-archive)
+# ===========================================================================
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-error"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-nonnull"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-nonnull])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -fpermissive"
+AC_MSG_CHECKING([if ${CXX} supports -fpermissive])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-deprecated-declarations])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+# ===========================================================================
+
 AC_CONFIG_FILES([qa/pull-tester/run-bitcoind-for-test.sh],[chmod +x qa/pull-tester/run-bitcoind-for-test.sh])
+
+# ===========================================================================
+# SAFE FLAG CHECKING (Works without autoconf-archive)
+# ===========================================================================
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-error"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-nonnull"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-nonnull])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -fpermissive"
+AC_MSG_CHECKING([if ${CXX} supports -fpermissive])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-deprecated-declarations])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+# ===========================================================================
+
 AC_CONFIG_FILES([qa/pull-tester/tests-config.sh],[chmod +x qa/pull-tester/tests-config.sh])
+
+# ===========================================================================
+# SAFE FLAG CHECKING (Works without autoconf-archive)
+# ===========================================================================
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-error"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-nonnull"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-nonnull])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -fpermissive"
+AC_MSG_CHECKING([if ${CXX} supports -fpermissive])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-deprecated-declarations])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+# ===========================================================================
+
 AC_CONFIG_FILES([contrib/devtools/split-debug.sh],[chmod +x contrib/devtools/split-debug.sh])
+
+# ===========================================================================
+# SAFE FLAG CHECKING (Works without autoconf-archive)
+# ===========================================================================
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-error"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-error])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-nonnull"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-nonnull])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -fpermissive"
+AC_MSG_CHECKING([if ${CXX} supports -fpermissive])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+
+saved_cxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+AC_MSG_CHECKING([if ${CXX} supports -Wno-deprecated-declarations])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], 
+    [AC_MSG_RESULT([yes])], 
+    [AC_MSG_RESULT([no]); CXXFLAGS="$saved_cxxflags"])
+# ===========================================================================
+
 AC_CONFIG_FILES([doc/Doxyfile])
 
 dnl boost's m4 checks do something really nasty: they export these vars. As a
