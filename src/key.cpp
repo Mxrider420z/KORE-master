@@ -13,9 +13,19 @@
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
 
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
+#include <openssl/ecdsa.h>
+
+
 // ==========================================================================
 // COMPATIBILITY SHIM: Support OpenSSL 1.0 (Old Linux) and 3.0 (New Linux)
 // ==========================================================================
+#include <openssl/opensslv.h>
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
+#include <openssl/ecdsa.h>
+
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
 {
@@ -43,6 +53,17 @@ void ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s)
     sig->r = r;
     sig->s = s;
 }
+#endif
+// ==========================================================================
+
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+#endif
+// ==========================================================================
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
 #endif
 // ==========================================================================
 
