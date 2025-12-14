@@ -33,7 +33,7 @@ gen: lib/univalue_escapes.h $(GENBIN)
 	@echo Updating $<
 	$(AM_V_at)$(GENBIN) > lib/univalue_escapes.h
 
-noinst_PROGRAMS = $(TESTS) test/test_json
+ test/test_json
 
 TEST_DATA_DIR=test
 
