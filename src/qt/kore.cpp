@@ -5,6 +5,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
+#include <clocale>
+#include <clocale>
 #include "config/bitcoin-config.h"
 #endif
 
@@ -519,6 +521,7 @@ WId BitcoinApplication::getMainWinId() const
 #ifndef BITCOIN_QT_TEST
 int main(int argc, char* argv[])
 {
+
     /// 1. Parse command-line options. These take precedence over anything else.
     // Command-line options take precedence:
     ParseParameters(argc, argv);
@@ -538,6 +541,7 @@ int main(int argc, char* argv[])
     Q_INIT_RESOURCE(kore);
 
     BitcoinApplication app(argc, argv);
+    setlocale(LC_NUMERIC, "C");
 #if QT_VERSION > 0x050100
     // Generate high-dpi pixmaps
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);

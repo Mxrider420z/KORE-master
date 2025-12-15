@@ -1,7 +1,7 @@
-7bb1f31f99733b4bd64ccb2b07871f78  usr/local/share/kore/kore-cli
-4696783767b3d76cbe266f368ba5ab73  usr/local/share/kore/kore-qt
+28ef55da0f80864bc3de689561af19b3  usr/local/share/kore/kore-cli
+c184880f53bd4f4b3ebdaa459a0d6fb6  usr/local/share/kore/kore-qt
 cd68c3014f57dcd429e48f599e717d16  usr/local/share/kore/kore-qt.png
-64e2d62b8c8bf0f852a46cba3076bba9  usr/local/share/kore/kored
+ea6a85aef253b12bcac3ae16c837a14a  usr/local/share/kore/kored
 b40b0c0f8943cafeced8fc78aa2cc55f  usr/local/share/kore/obfs4proxy
 d41d8cd98f00b204e9800998ecf8427e  usr/local/share/kore/torbrowser-setup.tar.xz
 75fc04c6780cdecfc25f38fd7410e9d9  usr/local/share/kore/torbrowser-setup/local-settings.js

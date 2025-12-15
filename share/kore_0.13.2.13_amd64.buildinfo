@@ -5,16 +5,16 @@ Architecture: amd64 source
 Version: 0.13.2.13
 Checksums-Md5:
  b311b072c20a07549716d1f4f6d6e361 523 kore_0.13.2.13.dsc
- acb3d3eb3d70be783924da8e8af0c584 15307964 kore_0.13.2.13_amd64.deb
+ 1dd1916dc99b99e8d3b673338e034f50 15307382 kore_0.13.2.13_amd64.deb
 Checksums-Sha1:
  b07857c1cc8146fb0473c01689a1ad69be83b43e 523 kore_0.13.2.13.dsc
- 41b9fdeb45e42729a1faf93d72b1c8d944f4c939 15307964 kore_0.13.2.13_amd64.deb
+ 0fcac396c71d9435b2579536c492e988590ccff3 15307382 kore_0.13.2.13_amd64.deb
 Checksums-Sha256:
  75a8816497d4336608e463314d8411451e0adc5dfd5f32074ed64a314e409c68 523 kore_0.13.2.13.dsc
- faf80f95060aec87f9f99825414e1b7a6a2e8d9d337059997ba8dcf9278ff554 15307964 kore_0.13.2.13_amd64.deb
+ 76ad2e3ea26f2c287dfb8ace9caa733dee6390d81c9350d0991de83ecd98ac3f 15307382 kore_0.13.2.13_amd64.deb
 Build-Origin: Ubuntu
 Build-Architecture: amd64
-Build-Date: Sun, 14 Dec 2025 20:21:41 -0300
+Build-Date: Mon, 15 Dec 2025 15:46:00 -0300
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
 Installed-Build-Depends:

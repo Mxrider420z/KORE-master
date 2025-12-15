@@ -846,7 +846,7 @@ void BitcoinGUI::browserClicked()
 #ifdef WIN32
     string torBrowserExec = string(getenv("USERPROFILE")) + "\\AppData\\Local\\Kore\\Browser\\firefox.exe";
 #else
-    string torBrowserExec = "/usr/local/share/kore/Browser/start-tor-browser";
+    string torBrowserExec = "/usr/local/share/kore/tor-browser/start-tor-browser.desktop";
 #endif
 
     if (!fIsTorBrowserRunning) {
@@ -864,7 +864,7 @@ void BitcoinGUI::browserClicked()
         } else {
             // warn user to check his environment
             QMessageBox::critical(this, tr("Tor Browser not Found !!!"),
-                tr("Could not find start-tor-browser, please check your environment PATH variable."));
+                tr("Could not find tor-browser/start-tor-browser.desktop, please check your environment PATH variable."));
         }
     }
 #endif
