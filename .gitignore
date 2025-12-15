@@ -153,4 +153,7 @@ qa/pull-tester/test.*/*
 CMakeLists.txt
 cmake-build-debug
 
-\.vscode/ipch/
+\.vscode/ipch/*.deb
+src/qt/kore-qt
+src/kored
+src/kore-cli
