@@ -27,7 +27,7 @@ enum Network {
 class CNetAddr
 {
 protected:
-    unsigned char ip[16]; // in network byte order
+    unsigned char ip[64]; // Expanded for Tor V3 support // in network byte order
 
 public:
     CNetAddr();

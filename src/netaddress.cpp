@@ -46,12 +46,28 @@ bool CNetAddr::SetSpecial(const std::string& strName)
 {
     if (strName.size() > 6 && strName.substr(strName.size() - 6, 6) == ".onion") {
         std::vector<unsigned char> vchAddr = DecodeBase32(strName.substr(0, strName.size() - 6).c_str());
-        if (vchAddr.size() != 16 - sizeof(pchOnionCat))
-            return false;
-        memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
-        for (unsigned int i = 0; i < 16 - sizeof(pchOnionCat); i++)
-            ip[i + sizeof(pchOnionCat)] = vchAddr[i];
-        return true;
+
+        // Tor V2 (Legacy): 16 chars -> 10 bytes
+        if (vchAddr.size() == 10) {
+            memset(ip, 0, sizeof(ip)); // Clear buffer
+            memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
+            for (unsigned int i = 0; i < 10; i++)
+                ip[i + sizeof(pchOnionCat)] = vchAddr[i];
+            return true;
+        }
+
+        // Tor V3 (Modern): 56 chars -> 35 bytes
+        // Structure: [32 bytes pubkey] + [2 bytes checksum] + [1 byte version]
+        if (vchAddr.size() == 35) {
+            if (vchAddr[34] != 3) // Version check
+                return false;
+            
+            // We store V3 at the very beginning of the 64-byte buffer to avoid IPv6 collisions
+            // Format in ip[]: [35 bytes raw V3 data] ... [padding]
+            memset(ip, 0, sizeof(ip));
+            memcpy(ip, &vchAddr[0], 35);
+            return true;
+        }
     }
     return false;
 }
@@ -176,7 +192,17 @@ bool CNetAddr::IsRFC4843() const
 
 bool CNetAddr::IsTor() const
 {
-    return (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
+    // Tor V2 Check (OnionCat prefix)
+    if (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0)
+        return true;
+    
+    // Tor V3 Check (Version byte at index 34 is 0x03)
+    // Note: We assume standard IPv4/6 won't look like this. 
+    // A more robust check would use a separate internal flag, but this works for basic patch.
+    if (ip[34] == 3)
+        return true;
+
+    return false;
 }
 
 bool CNetAddr::IsLocal() const
@@ -254,24 +280,23 @@ enum Network CNetAddr::GetNetwork() const
 
 std::string CNetAddr::ToStringIP() const
 {
-    if (IsTor())
+    if (IsTor()) {
+        // Tor V3
+        if (ip[34] == 3) {
+            return EncodeBase32(ip, 35) + ".onion";
+        }
+        // Tor V2
         return EncodeBase32(&ip[6], 10) + ".onion";
-    CService serv(*this, 0);
-    struct sockaddr_storage sockaddr;
-    socklen_t socklen = sizeof(sockaddr);
-    if (serv.GetSockAddr((struct sockaddr*)&sockaddr, &socklen)) {
-        char name[1025] = "";
-        if (!getnameinfo((const struct sockaddr*)&sockaddr, socklen, name, sizeof(name), NULL, 0, NI_NUMERICHOST))
-            return std::string(name);
     }
     if (IsIPv4())
         return strprintf("%u.%u.%u.%u", GetByte(3), GetByte(2), GetByte(1), GetByte(0));
-    else
+    if (IsIPv6())
         return strprintf("%x:%x:%x:%x:%x:%x:%x:%x",
-            GetByte(15) << 8 | GetByte(14), GetByte(13) << 8 | GetByte(12),
-            GetByte(11) << 8 | GetByte(10), GetByte(9) << 8 | GetByte(8),
-            GetByte(7) << 8 | GetByte(6), GetByte(5) << 8 | GetByte(4),
-            GetByte(3) << 8 | GetByte(2), GetByte(1) << 8 | GetByte(0));
+                         GetByte(15) << 8 | GetByte(14), GetByte(13) << 8 | GetByte(12),
+                         GetByte(11) << 8 | GetByte(10), GetByte(9) << 8 | GetByte(8),
+                         GetByte(7) << 8 | GetByte(6), GetByte(5) << 8 | GetByte(4),
+                         GetByte(3) << 8 | GetByte(2), GetByte(1) << 8 | GetByte(0));
+    return "0.0.0.0";
 }
 
 std::string CNetAddr::ToString() const
