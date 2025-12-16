@@ -16,3 +16,4 @@ fi
 which autoreconf >/dev/null || \
   (echo "configuration failed, please install autoconf first" && exit 1)
 autoreconf --install --warnings=all
+cd src/univalue && autoreconf -fi
