@@ -343,7 +343,12 @@ void InitializeNode(NodeId nodeid, const CNode* pnode)
 
 void FinalizeNode(NodeId nodeid)
 {
-    LOCK(cs_main);
+    // KORE-PATCH: Safe lock to prevent crash on disconnect
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain) {
+        LogPrintf("WARNING: FinalizeNode could not lock cs_main for node %d. Skipping cleanup to avoid crash.\n", nodeid);
+        return;
+    }
     CNodeState* state = State(nodeid);
 
     if (state->fSyncStarted)
@@ -363,7 +368,12 @@ void FinalizeNode(NodeId nodeid)
 
 void FinalizeNode_Legacy(NodeId nodeid)
 {
-    LOCK(cs_main);
+    // KORE-PATCH: Safe lock to prevent crash on disconnect
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain) {
+        LogPrintf("WARNING: FinalizeNode_Legacy could not lock cs_main for node %d. Skipping cleanup to avoid crash.\n", nodeid);
+        return;
+    }
     CNodeState* state = State(nodeid);
 
     if (state->fSyncStarted)
