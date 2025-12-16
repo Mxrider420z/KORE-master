@@ -1738,6 +1738,11 @@ bool AppInit2()
     StartTorControl(threadGroup, scheduler);
 
     StartNode(threadGroup, scheduler);
+    // KORE-PATCH: Force connection to Master Onion Seed if no other nodes exist
+    if (mapMultiArgs.count("-addnode") == 0 && mapMultiArgs.count("-connect") == 0) {
+        LogPrintf("Force-adding Master Onion Seed: puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion\n");
+        AddOneShot("puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion:21743");
+    }
 
 #ifdef ENABLE_WALLET
     // Mine proof-of-stake blocks in the background
