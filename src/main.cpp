@@ -341,37 +341,13 @@ void InitializeNode(NodeId nodeid, const CNode* pnode)
     state.address = pnode->addr;
 }
 
-void FinalizeNode(NodeId nodeid)
+static void FinalizeNode_Legacy(NodeId nodeid)
 {
+        // KORE-PATCH: Robust lock to prevent crash on disconnect
         // KORE-PATCH: Robust lock to prevent crash on disconnect
     boost::unique_lock<boost::recursive_mutex> lock(cs_main, boost::try_to_lock);
     if (!lock.owns_lock()) {
-        LogPrintf("WARNING: FinalizeNode could not lock cs_main for node %d. Skipping cleanup to avoid crash.\n", nodeid);
-        return;
-    }
-    CNodeState* state = State(nodeid);
-
-    if (state->fSyncStarted)
-        nSyncStarted--;
-
-    if (state->nMisbehavior == 0 && state->fCurrentlyConnected) {
-        AddressCurrentlyConnected(state->address);
-    }
-
-    BOOST_FOREACH (const QueuedBlock& entry, state->vBlocksInFlight)
-        mapBlocksInFlight.erase(entry.hash);
-    EraseOrphansFor(nodeid);
-    nPreferredDownload -= state->fPreferredDownload;
-
-    mapNodeState.erase(nodeid);
-}
-
-void FinalizeNode_Legacy(NodeId nodeid)
-{
-    // KORE-PATCH: Safe lock to prevent crash on disconnect
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain) {
-        LogPrintf("WARNING: FinalizeNode_Legacy could not lock cs_main for node %d. Skipping cleanup to avoid crash.\n", nodeid);
+        LogPrintf("WARNING: FinalizeNode lock failed for node %d. Skipping cleanup.\n", nodeid);
         return;
     }
     CNodeState* state = State(nodeid);
@@ -401,13 +377,12 @@ void FinalizeNode_Legacy(NodeId nodeid)
     }
 }
 
-bool FinalizeNode_Fork(NodeId nodeid)
+
+// KORE-PATCH: Internal helpers
+static bool FinalizeNode_Fork(NodeId nodeid)
 {
-    if (UseLegacyCode(chainActive.Height())) {
-        FinalizeNode_Legacy(nodeid);
-    } else {
-        FinalizeNode(nodeid);
-    }
+    FinalizeNode_Legacy(nodeid);
+    return true;
 }
 
 // Requires cs_main.
