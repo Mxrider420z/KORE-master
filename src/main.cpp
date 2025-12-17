@@ -343,9 +343,9 @@ void InitializeNode(NodeId nodeid, const CNode* pnode)
 
 void FinalizeNode(NodeId nodeid)
 {
-    // KORE-PATCH: Safe lock to prevent crash on disconnect
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain) {
+        // KORE-PATCH: Robust lock to prevent crash on disconnect
+    boost::unique_lock<boost::recursive_mutex> lock(cs_main, boost::try_to_lock);
+    if (!lock.owns_lock()) {
         LogPrintf("WARNING: FinalizeNode could not lock cs_main for node %d. Skipping cleanup to avoid crash.\n", nodeid);
         return;
     }
