@@ -1,7 +1,7 @@
 packages:=boost openssl libevent zlib zeromq tor
 native_packages:=native_ccache
 
-linux_packages:=gperftools qt
+linux_packages:=gperftools
 
 mingw32_packages:=curl_win
 
