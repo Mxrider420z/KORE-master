@@ -46,7 +46,7 @@ b) disabling swap
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git curl jq
+sudo apt-get install -y git curl jq wget bsdmainutils rsync
 sudo apt-get install -y software-properties-common
 sudo apt-get install -y autotools-dev autoconf automake build-essential
 sudo apt-get install -y qttools5-dev-tools qttools5-dev libprotobuf-dev libqrencode-dev
@@ -68,28 +68,15 @@ make
 ```bash
 cd ..
 ./autogen.sh
-./configure --with-gui=qt5 --prefix=`pwd`/depends/x86_64-pc-linux-gnu --disable-tests  --enable-tor-browser
-
-make
+./configure --with-gui=qt5 --prefix=$(pwd)/depends/x86_64-pc-linux-gnu --disable-tests --enable-tor-browser --disable-dependency-tracking --disable-maintainer-mode
+make -j$(nproc)
 ```
 
 ### 4. Generating the installer (.deb)
-#### First, Download Go
-```bash
-From a web browser open and save the following link: 
-  https://golang.org/doc/install?download=go1.12.7.linux-amd64.tar.gz
-```
 
-#### Second, Install Go
+#### First, Install Go
 ```bash
-cd ~/Downloads
-sudo tar -C /usr/local -xzf go1.12.7.linux-amd64.tar.gz
-```
-
-#### Third, make Go available 
-```bash
-in a terminal make go available, with the following command:
-export PATH=$PATH:/usr/local/go/bin
+sudo apt-get install -y golang-go
 ```
 
 #### Fourth, generate the (.deb)
