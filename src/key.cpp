@@ -13,6 +13,60 @@
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
 
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
+#include <openssl/ecdsa.h>
+
+
+// ==========================================================================
+// COMPATIBILITY SHIM: Support OpenSSL 1.0 (Old Linux) and 3.0 (New Linux)
+// ==========================================================================
+#include <openssl/opensslv.h>
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
+#include <openssl/ecdsa.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
+{
+    if (n != NULL) *n = r->n;
+    if (e != NULL) *e = r->e;
+    if (d != NULL) *d = r->d;
+}
+
+void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
+{
+    if (p != NULL) *p = r->p;
+    if (q != NULL) *q = r->q;
+}
+
+void ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
+{
+    if (pr != NULL) *pr = sig->r;
+    if (ps != NULL) *ps = sig->s;
+}
+
+void ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s)
+{
+    if (sig->r) BN_free(sig->r);
+    if (sig->s) BN_free(sig->s);
+    sig->r = r;
+    sig->s = s;
+}
+#endif
+// ==========================================================================
+
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+#endif
+// ==========================================================================
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+#endif
+// ==========================================================================
+
 static secp256k1_context* secp256k1_context_sign = NULL;
 
 /** These functions are taken from the libsecp256k1 distribution and are very ugly. */

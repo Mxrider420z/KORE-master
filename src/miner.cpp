@@ -1036,12 +1036,22 @@ void KoreMiner()
                     if (fDebug)
                         LogPrintf("KoreMiner is waiting for a Peer!!! \n");
 
-                    bool fvNodesEmpty;
+                    // KORE-PATCH: Custom Mining Rules (Testnet vs Mainnet)
+                    int nNodes = 0;
                     {
                         LOCK(cs_vNodes);
-                        fvNodesEmpty = vNodes.empty();
+                        nNodes = vNodes.size();
                     }
-                    if (!fvNodesEmpty && !IsInitialBlockDownload())
+
+                    bool fIsTestNet = (Params().GetNetworkID() == CBaseChainParams::TESTNET);
+                    // Testnet: Require 3 peers, ignore sync status (for old genesis)
+                    // Mainnet: Require 1 peer, enforce sync
+                    int nMinPeers = fIsTestNet ? 3 : 1;
+                    
+                    bool fPeerCountMet = (nNodes >= nMinPeers);
+                    bool fSynced = !IsInitialBlockDownload();
+                    
+                    if (fPeerCountMet && (fIsTestNet || fSynced))
                         break;
                     MilliSleep(1000);
                 } while (true);

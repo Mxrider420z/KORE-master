@@ -1181,10 +1181,6 @@ static const char* strMainNetOnionSeed[][1] = {
 };
 
 static const char* strTestNetOnionSeed[][1] = {
-    {"xt6gwbeswyte4xgv.onion"}, 
-    {"camajfj25yvcf6zx.onion"}, 
-    {"uwzjdek4u6k2lzpr.onion"}, 
-    {"yc64cuvf4usx3mgg.onion"}, // cloud
     {NULL} // last element => couldn't use size ?
 };
 
@@ -1389,7 +1385,7 @@ void TorThread()
     tor_args.push_back("--HiddenServicePort");
     tor_args.push_back(std::to_string(Params().GetDefaultPort()));
     tor_args.push_back("--HiddenServiceVersion");
-    tor_args.push_back("2");    
+    tor_args.push_back("3");    
     tor_args.push_back("-f");
     tor_args.push_back((tor_directory / "torrc").string());
     tor_args.push_back("--DataDirectory");
@@ -1526,10 +1522,11 @@ void DumpAddresses()
     int64_t nStart = GetTimeMillis();
 
     CAddrDB adb;
-    adb.Write(addrman);
-
-    LogPrint("net", "Flushed %d addresses to peers.dat  %dms\n",
-        addrman.size(), GetTimeMillis() - nStart);
+    if (adb.Write(addrman)) {
+        LogPrintf("Flushed %d addresses to peers.dat  %dms\n", addrman.size(), GetTimeMillis() - nStart);
+    } else {
+        LogPrintf("ERROR: Failed to write peers.dat! Check permissions or disk space.\n");
+    }
 }
 
 void DumpData()

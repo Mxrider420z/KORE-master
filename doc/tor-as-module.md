@@ -6,10 +6,10 @@ https://chrisjean.com/git-submodules-adding-using-removing-and-updating/
 
 2) Changing tor version
   cd tor
-  git checkout tor-0.4.6.8  # Replace with the latest stable version if different
+  git checkout tor-0.3.4.9
   cd ..
   git add tor
-  git commit -m "tor version 0.4.6.8"
+  git commit -m "tor version 0.3.4.9"
   git push
 
    

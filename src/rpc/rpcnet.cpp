@@ -1,3 +1,6 @@
+#include <fstream>
+#include <fstream>
+#include <boost/filesystem.hpp>
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2018 The KORE developers
@@ -483,6 +486,20 @@ UniValue getonion(const UniValue& params, bool fHelp)
             localAddresses.push_back(rec);
         }
     }
+// PATCH: Read onion address directly from disk
+    boost::filesystem::path onionPath = GetDataDir() / "tor" / "onion" / "hostname";
+    std::ifstream file(onionPath.string().c_str());
+    if (file.good()) {
+        std::string onionAddress;
+        std::getline(file, onionAddress);
+        if (!onionAddress.empty()) {
+             UniValue rec(UniValue::VOBJ);
+             rec.push_back(Pair("address", onionAddress));
+             localAddresses.push_back(rec);
+        }
+    }
+    // END PATCH
+
     obj.push_back(Pair("onion", localAddresses));
     return obj;
 

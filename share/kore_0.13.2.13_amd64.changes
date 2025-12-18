@@ -1,0 +1,34 @@
+Format: 1.8
+Date: Thu, 24 Oct 2019 15:42:00 -0300
+Source: kore
+Binary: kore
+Built-For-Profiles: noudeb
+Architecture: source amd64
+Version: 0.13.2.13
+Distribution: stable
+Urgency: medium
+Maintainer: Kore <dev@kore.com>
+Changed-By: Kore <dev@kore.com>
+Description:
+ kore       - Kore is a wallet for Kore crypto coins.
+Changes:
+ kore (0.13.2.13) stable; urgency=medium
+ .
+   * only works for testnet
+   * update torbrowser to 9.0
+   * update kore addon for torbrowser is now a menu with 4 options
+Checksums-Sha1:
+ b07857c1cc8146fb0473c01689a1ad69be83b43e 523 kore_0.13.2.13.dsc
+ d809a2d462f60773d1cb23a1f8bd004717d18dd8 18640 kore_0.13.2.13.tar.xz
+ 9481e200c76e5156c23eb2a45bcc8c96ef71bf3f 6327 kore_0.13.2.13_amd64.buildinfo
+ 0fcac396c71d9435b2579536c492e988590ccff3 15307382 kore_0.13.2.13_amd64.deb
+Checksums-Sha256:
+ 75a8816497d4336608e463314d8411451e0adc5dfd5f32074ed64a314e409c68 523 kore_0.13.2.13.dsc
+ 38204c567854a37eb79ce0052c0f070676ce8a4cdfdf1f24f60bb2b12ca238bf 18640 kore_0.13.2.13.tar.xz
+ 75f767a4f12042684f77ffc55b0a9b17c327600bb5d8b75bff94149c9519c9a3 6327 kore_0.13.2.13_amd64.buildinfo
+ 76ad2e3ea26f2c287dfb8ace9caa733dee6390d81c9350d0991de83ecd98ac3f 15307382 kore_0.13.2.13_amd64.deb
+Files:
+ b311b072c20a07549716d1f4f6d6e361 523 unknown optional kore_0.13.2.13.dsc
+ 01f4f22b5d2a5df968ba852bb20d867f 18640 unknown optional kore_0.13.2.13.tar.xz
+ 8fce0eb3c605a1e8b99cd5920bcd0380 6327 unknown optional kore_0.13.2.13_amd64.buildinfo
+ 1dd1916dc99b99e8d3b673338e034f50 15307382 unknown optional kore_0.13.2.13_amd64.deb

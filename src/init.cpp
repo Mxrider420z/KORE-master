@@ -1738,6 +1738,21 @@ bool AppInit2()
     StartTorControl(threadGroup, scheduler);
 
     StartNode(threadGroup, scheduler);
+    // KORE-PATCH: Auto-connect to Master Seed (Smart Check)
+    // KORE-PATCH: Auto-connect to Master Seed (Smart Check)
+    if (mapMultiArgs.count("-addnode") == 0 && mapMultiArgs.count("-connect") == 0) {
+        const char* pszMaster = "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion";
+        // Fix: LookupNumeric returns the object, it does not return bool
+        CService serviceMaster = LookupNumeric(pszMaster, 21743);
+        if (serviceMaster.IsValid()) {
+            if (IsLocal(serviceMaster)) {
+                LogPrintf("KORE-PATCH: Skipping Master Seed (I am the Master)\n");
+            } else {
+                LogPrintf("KORE-PATCH: Force-adding Master Onion Seed: %s\n", pszMaster);
+                AddOneShot(std::string(pszMaster) + ":21743");
+            }
+        }
+    }
 
 #ifdef ENABLE_WALLET
     // Mine proof-of-stake blocks in the background

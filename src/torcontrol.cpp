@@ -6,6 +6,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "torcontrol.h"
+#include "utilstrencodings.h" // Added for Base64
 #include "utilstrencodings.h"
 #include "netbase.h"
 #include "net.h"
@@ -531,11 +532,25 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
         SetLimited(NET_TOR, false);
 
         // Finally - now create the service
-        if (private_key.empty()) // No private key, generate one
-            private_key = "NEW:RSA1024"; // Explicitly request RSA1024 - see issue #9214
+
+        // [AUTOMATED PATCH] Strip Header & Encode to Base64
+        if (private_key.size() > 32 && private_key.substr(0, 2) == "==") {
+             LogPrintf("TOR PATCH: Found V3 binary key. Converting to Base64...\n");
+             std::string binaryKey = private_key.substr(32);
+             std::string base64Key = EncodeBase64((const unsigned char*)binaryKey.data(), binaryKey.size());
+             private_key = "ED25519-V3:" + base64Key;
+        }
+        // [END PATCH]
+                if (private_key.empty()) // No private key, generate one
+            private_key = "NEW:ED25519-V3"; // Explicitly request RSA1024 - see issue #9214
         // Request hidden service, redirect port.
         // Note that the 'virtual' port doesn't have to be the same as our internal port, but this is just a convenient
         // choice.  TODO; refactor the shutdown sequence some day.
+        // [PATCH] Skip ADD_ONION for V3 (Safe Multi-line handling)
+        LogPrintf("TOR: V3 Key detected. Auto-selecting port.\n");
+            // AUTOMATIC PORT SWITCH: GetListenPort() detects Mainnet/Testnet
+            _conn.Command(strprintf("ADD_ONION %s Port=%i,127.0.0.1:%i", private_key, GetListenPort(), GetListenPort()),
+                boost::bind(&TorController::add_onion_cb, this, _1, _2)); 
         _conn.Command(strprintf("ADD_ONION %s Port=%i,127.0.0.1:%i", private_key, GetListenPort(), GetListenPort()),
             boost::bind(&TorController::add_onion_cb, this, _1, _2));
     } else {
@@ -718,7 +733,7 @@ void TorController::Reconnect()
 
 std::string TorController::GetPrivateKeyFile()
 {
-    return (GetDataDir() / "onion_private_key").string();
+    return (GetDataDir() / "tor" / "onion" / "hs_ed25519_secret_key").string(); // PATCHED V3 PATH
 }
 
 void TorController::reconnect_cb(evutil_socket_t fd, short what, void *arg)
