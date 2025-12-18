@@ -68,7 +68,16 @@ make
 ```bash
 cd ..
 ./autogen.sh
-./configure --with-gui=qt5 --prefix=$(pwd)/depends/x86_64-pc-linux-gnu --disable-tests --enable-tor-browser --disable-dependency-tracking --disable-maintainer-mode
+./configure --with-gui=qt5 \\
+ --prefix=$(pwd)/depends/x86_64-pc-linux-gnu \\
+ --disable-tests \\
+ --enable-tor-browser \\
+ --disable-dependency-tracking \\
+ --disable-maintainer-mode \\
+ MOC=/usr/lib/qt5/bin/moc \\
+ UIC=/usr/lib/qt5/bin/uic \\
+ RCC=/usr/lib/qt5/bin/rcc \\
+ LRELEASE=/usr/lib/qt5/bin/lrelease
 make -j$(nproc)
 ```
 
