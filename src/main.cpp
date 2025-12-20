@@ -6234,7 +6234,8 @@ bool static ProcessMessageReject(CNode* pfrom, string strCommand, CDataStream& v
         ostringstream ss;
         ss << strMsg << " code " << itostr(ccode) << ": " << strReason;
 
-        if (strMsg == NetMsgType::BLOCK || strMsg == NetMsgType::TX) {
+        // [Fixed] Check buffer size before reading hash to prevent IBD disconnects
+        if ((strMsg == NetMsgType::BLOCK || strMsg == NetMsgType::TX) && vRecv.size() >= 32) {
             uint256 hash;
             vRecv >> hash;
             ss << ": hash " << hash.ToString();
