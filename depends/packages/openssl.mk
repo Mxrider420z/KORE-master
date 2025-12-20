@@ -63,3 +63,13 @@ endef
 define $(package)_postprocess_cmds
   rm -rf share bin etc
 endef
+
+# --- DUAL TRACK CONFIGURATION (Fix for Cross-Compilation) ---
+# This ensures OpenSSL uses the correct config based on the HOST variable.
+
+# 1. Native Linux Configuration (x86_64-pc-linux-gnu)
+package_config_args_x86_64_pc_linux_gnu = linux-x86_64 enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-shared no-dso -fPIC
+
+# 2. Windows Cross-Compilation (x86_64-w64-mingw32)
+package_config_args_x86_64_w64_mingw32 = mingw64 enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-shared no-dso
+# -------------------------------------------------------------

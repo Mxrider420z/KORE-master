@@ -6,117 +6,139 @@ import sys
 import argparse
 
 # ================= CONFIGURATION =================
-# How many splits to create per transaction? 
-# (e.g., 1 big input -> 5 new staking outputs)
 SPLITS_PER_ROUND = 5 
+MATURITY_REQUIRED = 5  
+MIN_REQUIRED_COINS = 5002.0
 # =================================================
 
 def run_rpc(cli_cmd, method, *args):
     """Executes a kore-cli command and returns the JSON result."""
     command = cli_cmd + [method] + [str(a) for a in args]
     try:
-        result = subprocess.check_output(command)
-        if not result:
-            return None
-        # Try to parse JSON, if it's just a string (like a txid), wrap it
+        # stderr=subprocess.STDOUT helps ignore non-critical RPC warnings
+        result = subprocess.check_output(command, stderr=subprocess.STDOUT)
+        if not result: return None
         try:
             return json.loads(result)
         except json.JSONDecodeError:
             return result.decode('utf-8').strip()
-    except subprocess.CalledProcessError as e:
-        print(f"Error running RPC: {e}")
-        sys.exit(1)
+    except subprocess.CalledProcessError:
+        return None
 
-def get_block_height(cli_cmd):
-    return int(run_rpc(cli_cmd, "getblockcount"))
+def ensure_staking_active(cli_cmd):
+    """Force staking to be ON without interrupting flow."""
+    try:
+        run_rpc(cli_cmd, "setstaking", "true")
+    except:
+        pass
 
 def main():
-    parser = argparse.ArgumentParser(description="Smart Staking Fan-Out Script")
-    parser.add_argument("amount", type=float, help="Amount of coins to send to EACH new address")
-    parser.add_argument("rounds", type=int, help="How many rounds of splitting to perform")
-    parser.add_argument("--cli", default="./src/kore-cli", help="Path to kore-cli (default: ./src/kore-cli)")
-    parser.add_argument("--datadir", help="Path to datadir (e.g. /home/mx/.kore/testnet3)")
-    parser.add_argument("--testnet", action="store_true", help="Use testnet defaults")
+    parser = argparse.ArgumentParser(description="KORE Zero-Downtime Spreader")
+    parser.add_argument("amount", type=float, help="KORE per split")
+    parser.add_argument("rounds", type=int, help="Total rounds")
+    parser.add_argument("--cli", default="./src/kore-cli", help="Path to kore-cli")
+    parser.add_argument("--datadir", help="Path to datadir")
+    parser.add_argument("--testnet", action="store_true", help="Use testnet")
     
     args = parser.parse_args()
-
-    # Build the base CLI command
     cli_cmd = [args.cli]
-    if args.datadir:
-        cli_cmd.append(f"-datadir={args.datadir}")
-    if args.testnet:
-        # Assuming standard testnet path if only flag is given
-        print("Assuming default testnet datadir...")
-        cli_cmd.append("-testnet")
+    if args.datadir: cli_cmd.append(f"-datadir={args.datadir}")
+    if args.testnet: cli_cmd.append("-testnet")
 
-    print(f"--- Smart Stake Spreader Started ---")
-    print(f"Target: {args.amount} KORE per address")
-    print(f"Splits per tx: {SPLITS_PER_ROUND}")
-    print(f"Total Rounds: {args.rounds}")
+    print(f"--- Smart Stake Spreader (Always-On Staking Mode) ---")
     
-    current_height = get_block_height(cli_cmd)
-    print(f"Current Block Height: {current_height}")
+    # Ensure staking is ON at start
+    ensure_staking_active(cli_cmd)
+    
+    round_idx = 1
+    while round_idx <= args.rounds:
+        # 1. UNLOCK ALL
+        # We start by ensuring everything is free to stake
+        run_rpc(cli_cmd, "lockunspent", "true")
 
-    for round_num in range(1, args.rounds + 1):
-        print(f"\n[Round {round_num}/{args.rounds}] Analyzing wallet UTXOs...")
-
-        # 1. Get all unspent outputs
+        # 2. SCAN WALLET
         unspent = run_rpc(cli_cmd, "listunspent")
-        
-        # 2. Sort by amount (Descending) - Coin Control Logic
-        # We want the biggest pile of coins to split from.
-        unspent.sort(key=lambda x: x['amount'], reverse=True)
-
         if not unspent:
-            print("Error: No unspent coins found!")
-            break
+            print("  > Wallet scanning... Waiting 15s.")
+            time.sleep(15)
+            continue
 
-        # Pick the winner
-        source_utxo = unspent[0]
-        source_amount = float(source_utxo['amount'])
-        source_addr = source_utxo['address']
-        
-        required_amount = args.amount * SPLITS_PER_ROUND
-        
-        print(f"  > Largest UTXO found: {source_amount:.4f} KORE (Address: {source_addr})")
+        # 3. FIND TARGET
+        candidates = [u for u in unspent if u['confirmations'] >= MATURITY_REQUIRED and u['amount'] >= MIN_REQUIRED_COINS]
+        candidates.sort(key=lambda x: x['amount'], reverse=True)
 
-        if source_amount < required_amount + 0.01: # Buffer for fees
-            print(f"  > Error: Not enough funds in largest UTXO to perform split.")
-            print(f"  > Needed: {required_amount} | Have: {source_amount}")
-            print("  > Stopping.")
-            break
+        if not candidates:
+            print(f"  > Waiting for mature UTXO >= {MIN_REQUIRED_COINS}...")
+            # Heartbeat to ensure staking stays ON during long waits
+            ensure_staking_active(cli_cmd)
+            time.sleep(30)
+            continue
 
-        # 3. Generate new addresses and build 'sendmany' dictionary
-        send_many_dict = {}
-        print(f"  > Generating {SPLITS_PER_ROUND} new addresses...")
-        
-        for _ in range(SPLITS_PER_ROUND):
-            # We create a new address for every split to maximize privacy and staking separation
-            new_addr = run_rpc(cli_cmd, "getnewaddress")
-            send_many_dict[new_addr] = args.amount
-        
-        # 4. Send the Transaction
-        # We use the empty string "" to denote the default account
-        print(f"  > Sending {required_amount} KORE (split into {SPLITS_PER_ROUND})...")
+        target = candidates[0]
+        print(f"\n[Round {round_idx}/{args.rounds}] Target: {target['amount']} KORE")
+
         try:
-            txid = run_rpc(cli_cmd, "sendmany", "", json.dumps(send_many_dict))
-            print(f"  > TX Sent! ID: {txid}")
-        except Exception as e:
-            print(f"  > Transaction Failed: {e}")
-            break
+            # 4. EXCLUDE TARGET FROM STAKING (The "Let Go" Step)
+            # We lock the target coin. The Staker will see it's locked and ignore it.
+            # ALL OTHER coins continue to stake normally.
+            print("  > Isolating target from Staker (others keep staking)...")
+            lock_target = [{"txid": target['txid'], "vout": target['vout']}]
+            run_rpc(cli_cmd, "lockunspent", "false", json.dumps(lock_target))
+            
+            # Wait 5 seconds for the Staker to refresh and "forget" this specific coin
+            time.sleep(5)
 
-        # 5. Wait for a Block
-        if round_num < args.rounds:
-            print("  > Waiting for next block to ensure inputs valid...")
-            while True:
-                new_height = get_block_height(cli_cmd)
-                if new_height > current_height:
-                    current_height = new_height
-                    print(f"  > Block {new_height} mined! Proceeding to next round.")
-                    break
-                time.sleep(5) # Check every 5 seconds
-        else:
-            print("\nDone! All rounds completed.")
+            # 5. PREPARE BROADCAST (Flash Swap)
+            # We need to unlock the target (to spend it) and lock others (to force input selection)
+            # This happens in milliseconds, so staking impact is negligible.
+            
+            # A. Unlock everything first
+            run_rpc(cli_cmd, "lockunspent", "true") 
+            
+            # B. Lock everything EXCEPT target
+            # This forces sendmany to use ONLY the target, preventing vin.size=6 crash
+            others = [u for u in unspent if u['txid'] != target['txid'] or u['vout'] != target['vout']]
+            if others:
+                lock_others = [{"txid": u['txid'], "vout": u['vout']} for u in others]
+                run_rpc(cli_cmd, "lockunspent", "false", json.dumps(lock_others))
+
+            # 6. BROADCAST
+            print("  > Broadcasting...")
+            recipients = {run_rpc(cli_cmd, "getnewaddress"): args.amount for _ in range(SPLITS_PER_ROUND)}
+            txid = run_rpc(cli_cmd, "sendmany", "", json.dumps(recipients), "1", "FanOut")
+            
+            # 7. IMMEDIATE RELEASE
+            # Unlock everything instantly. Staking is fully restored for all coins.
+            run_rpc(cli_cmd, "lockunspent", "true")
+            ensure_staking_active(cli_cmd) # Double check staking is ON
+
+            if txid:
+                print(f"  > Success! TXID: {txid}")
+                
+                # Lock the spent input to prevent double-spending it
+                run_rpc(cli_cmd, "lockunspent", "false", json.dumps(lock_target))
+                
+                round_idx += 1
+                
+                print("  > Cooling down (30s). Staking is ACTIVE.")
+                h = run_rpc(cli_cmd, "getblockcount")
+                while True:
+                    time.sleep(20)
+                    if (run_rpc(cli_cmd, "getblockcount") or 0) > h: 
+                        print("  > Block confirmed.")
+                        break
+            else:
+                print("  > Broadcast failed. Retrying...")
+                time.sleep(10)
+
+        except Exception as e:
+            print(f"  > Error: {e}")
+            # Safety: Unlock everything and ensure staking is ON
+            run_rpc(cli_cmd, "lockunspent", "true")
+            ensure_staking_active(cli_cmd)
+            time.sleep(20)
+
+    print("\nProcess Complete.")
 
 if __name__ == "__main__":
     main()
