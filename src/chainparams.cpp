@@ -245,6 +245,12 @@ public:
         vSeeds.clear();
 // vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "kore-testnet.seed.fuzzbawls.pw"));
 vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
+
+        // [Patch] Additional Onion Seeds for Testnet
+        vSeeds.push_back(CDNSSeedData("testnet-onion", "hsuvnbiowkhk7pi5g3me56ckoqggetl3o223jffp6thmbh5uuycw4iqd.onion"));
+        vSeeds.push_back(CDNSSeedData("testnet-onion", "gwnihlfvozcflxdlkghcxr6bddms3ngg63csgamkrqgkb5vpx5vtvjyd.onion"));
+        vSeeds.push_back(CDNSSeedData("testnet-onion", "emcvwatkkpdq3r6vn2vvpwiuvuy4lee6jvgwlgi2ifys33tvtdre7uqd.onion"));
+        vSeeds.push_back(CDNSSeedData("testnet-onion", "l7h65zbo5vtcmj4gwnczuhsm4hnrfexvf2mv6cbsx4qrxscgjjwh7jad.onion"));
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
 
         checkpointData = {
