@@ -940,10 +940,10 @@ void KoreMinter(CWallet* pwallet)
             fMintableCoins = pwallet->MintableCoins();
         }
 
-        while (vNodes.size() < 3 || pwallet->IsLocked() || !fMintableCoins || (pwallet->GetBalance() - nReserveBalance) < MINIMUM_STAKE_VALUE) {
+        while (vNodes.size() < 5 || pwallet->IsLocked() || !fMintableCoins || (pwallet->GetBalance() - nReserveBalance) < MINIMUM_STAKE_VALUE) {
             if (fDebug) {
                 LogPrintf("%s(): still unable to stake.\n", __func__);
-                if (vNodes.size() < 3)
+                if (vNodes.size() < 5)
                     LogPrintf("\tThere are no sufficient nodes connected;\n");
                 if (pwallet->IsLocked())
                     LogPrintf("\tThe wallet is locked;\n");
