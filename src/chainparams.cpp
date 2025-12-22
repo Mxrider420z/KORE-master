@@ -122,21 +122,9 @@ public:
         vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
-        checkpointData = {
-            {
-                {     0, nHashGenesisBlock},
-                {     5, uint256S("0x00eaaa465402e6bcf745c00c38c0033a26e4dea19448d9109e4555943d677a31")},
-                {  1000, uint256S("0x2073f0a245cedde8344c2d0b48243a58908ffa50b02e2378189f2bb80037abd9")},
-                { 40000, uint256S("0x572b31cc34f842aecbbc89083f7e40fff6a07e73e6002be75cb95468f4e3b4ca")},
-                { 80000, uint256S("0x070aa76a8a879f3946322086a542dd9e4afca81efafd7642192ed9fe56ba74f1")},
-                {120000, uint256S("0x70edc85193638b8adadb71ea766786d207f78a173dd13f965952eb76932f5729")},
-                {209536, uint256S("0x8a718dbb44b57a5693ac70c951f2f81a01b39933e3e19e841637f757598f571a")},
-                {300000, uint256S("0xb0d6c4c7240b03e70587bb52ebdc63a694a90f22b30fb73856b5cc3d192a231f")},
-                {400000, uint256S("0x59aee83d1f027d2107a8a9c4951767a27eb2224b24022b89f6b9247d2ebb4fdd")},
-                {450000, uint256S("0xa03c16b67f4c8303e0df024b81de65619ebe5f30cc7cd02fe2049b384f2a3a84")},
-                {530000, uint256S("0xed517719cd2f28babe67259cf12421c5dee60f3f53bbd91d17797b3b37ef2172")}
-            }
-        };
+        checkpointData.mapCheckpoints.clear();
+        checkpointData.mapCheckpoints[0] = nHashGenesisBlock;
+        checkpointData.mapCheckpoints[5] = uint256S("0x00eaaa465402e6bcf745c00c38c0033a26e4dea19448d9109e4555943d677a31");
 
         chainTxData.nTime    = 1560981536;
         chainTxData.nTxCount = 1069012;
@@ -174,25 +162,23 @@ public:
 
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         
-        // NEW GENESIS BLOCK (Mined Dec 22, 2025)
-        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1766384340, 631600, 2500634, 64441706, 0x1e0ffff0, 1, 49 * COIN);
+        // LOCKED GENESIS (Dec 22, 2025)
+        // Time: 1766436786, Nonce: 82026
+        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1766436786, 82026, 2500634, 64441706, 0x1e0ffff0, 1, 49 * COIN);
 
         nHashGenesisBlock = genesis.GetHash();
-        assert(nHashGenesisBlock == uint256S("0x000009778e03373aa9bce8352972fad787cd22225f06d3c64c222701f0d733e4"));
-        assert(genesis.hashMerkleRoot == uint256S("0xcca90182810fbcfb465e833dc26bc686ae468c007cadcd6810ce66293b71cb42"));
+        assert(nHashGenesisBlock == uint256S("0x00000eef716955bf46b1fe8bb16f3fa8fff39eed2271e9d62b446626f215917a"));
+        assert(genesis.hashMerkleRoot == uint256S("0xf17f603406f28cad494ccc4c03f1832abe2df5d0cd3c766f305fc9ad84139cba"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
         vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
 
-        checkpointData = {
-            {
-                {0, nHashGenesisBlock}
-            }
-        };
-        
-        chainTxData.nTime    = 1766384340;
+        checkpointData.mapCheckpoints.clear();
+        checkpointData.mapCheckpoints[0] = nHashGenesisBlock;
+
+        chainTxData.nTime    = 1766436786;
         chainTxData.nTxCount = 0;
         chainTxData.dTxRate  = 0.0;
     }
@@ -228,11 +214,10 @@ public:
         nTargetSpacing                 = 1 * 60;
         vFixedSeeds.clear();
         vSeeds.clear();
-        checkpointData = {
-            {
-                {0, uint256S("0x001")}
-            }
-        };
+        
+        checkpointData.mapCheckpoints.clear();
+        checkpointData.mapCheckpoints[0] = uint256S("0x001");
+
         chainTxData.nTime    = 1454124731;
         chainTxData.nTxCount = 0;
         chainTxData.dTxRate  = 100;

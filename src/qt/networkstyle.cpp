@@ -40,5 +40,5 @@ const NetworkStyle* NetworkStyle::instantiate(const QString& networkId)
                 network_styles[x].splashImage);
         }
     }
-    return 0;
+    return new NetworkStyle("kore-dev", "testnet", "[Dev]", "testnet");
 }
