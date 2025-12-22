@@ -236,6 +236,39 @@ public:
         const char* pszTimestamp                      = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
 
         genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1766384340, 0, 2500634, 64441706, 0x1e0ffff0, 1, 49 * COIN);
+        if (true) {
+            printf("========================================
+");
+            printf("MINING TESTNET GENESIS (Dec 22, 2025)...
+");
+            uint256 hashTarget = uint256().SetCompact(genesis.nBits);
+            while (genesis.GetHash() > hashTarget) {
+                genesis.nNonce++;
+                if (genesis.nNonce == 0) {
+                     printf("NONCE WRAPPED, incrementing time
+");
+                     genesis.nTime++;
+                }
+                if (genesis.nNonce % 100000 == 0) {
+                     printf("Checking Nonce: %u | Current Hash: %s
+", genesis.nNonce, genesis.GetHash().ToString().c_str());
+                }
+            }
+            printf("
+SUCCESS! FOUND GENESIS BLOCK:
+");
+            printf("Time: %u
+", genesis.nTime);
+            printf("Nonce: %u
+", genesis.nNonce);
+            printf("Hash: %s
+", genesis.GetHash().ToString().c_str());
+            printf("Merkle: %s
+", genesis.hashMerkleRoot.ToString().c_str());
+            printf("========================================
+");
+            exit(0); 
+        }
       
         nHashGenesisBlock = genesis.GetHash(); 
         // Assertion disabled until new hash is mined
