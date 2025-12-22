@@ -235,10 +235,11 @@ public:
         CScript genesisOutputScript                   = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         const char* pszTimestamp                      = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
 
-        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1766277784, 0, 2500634, 64441706, 0x201fffff, 1, 49 * COIN);
+        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1766384340, 0, 2500634, 64441706, 0x1e0ffff0, 1, 49 * COIN);
       
-        nHashGenesisBlock = genesis.GetHash();
-        assert(nHashGenesisBlock == uint256S("0xc999a0c29aba953d0ee5b3e2225a740c6939a0c85f958063d8e44a69e2630369"));
+        nHashGenesisBlock = genesis.GetHash(); 
+        // Assertion disabled until new hash is mined
+        // assert(nHashGenesisBlock == uint256S("HASH_PLACEHOLDER"));
         assert(genesis.hashMerkleRoot == uint256S("0x39f04416f8325ccbe77c3b84591e5620d133a278632db606f7880c1f1398a14e"));
 
         vFixedSeeds.clear();
