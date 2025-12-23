@@ -118,8 +118,9 @@ public:
         nHashGenesisBlock = genesis.GetHash();
         assert(nHashGenesisBlock == uint256("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"));
         assert(genesis.hashMerkleRoot == uint256S("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
-
-                vSeeds.push_back(CDNSSeedData("seed1", "v6jelomjzgn5xgxpjhq4f4jmbamorwuyqkiktdl2yit6p45ywbmex5id.onion"));
+        
+        vSeeds.push_back(CDNSSeedData("seed1", "v6jelomjzgn5xgxpjhq4f4jmbamorwuyqkiktdl2yit6p45ywbmex5id.onion"));
+        vSeeds.push_back(CDNSSeedData("seed2", "glyd53seqdplu5vx7kur3z2mwxms5lhm2kpqgnyhryzkdtd7ausoiaad.onion"));
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
         checkpointData.mapCheckpoints.clear();
@@ -170,9 +171,15 @@ public:
         assert(nHashGenesisBlock == uint256S("0x00000eef716955bf46b1fe8bb16f3fa8fff39eed2271e9d62b446626f215917a"));
         assert(genesis.hashMerkleRoot == uint256S("0xf17f603406f28cad494ccc4c03f1832abe2df5d0cd3c766f305fc9ad84139cba"));
 
-        vFixedSeeds.clear();
-        vSeeds.clear();
+        
+        vSeeds.clear(); // [KORE-FIX] Wipe Mainnet seeds first
+        vSeeds.clear(); // [KORE-FIX] Wipe Mainnet seeds first
         vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
+        vSeeds.push_back(CDNSSeedData("seed2", "hsuvnbiowkhk7pi5g3me56ckoqggetl3o223jffp6thmbh5uuycw4iqd.onion"));
+        vSeeds.push_back(CDNSSeedData("seed3", "gwnihlfvozcflxdlkghcxr6bddms3ngg63csgamkrqgkb5vpx5vtvjyd.onion"));
+        vSeeds.push_back(CDNSSeedData("seed4", "emcvwatkkpdq3r6vn2vvpwiuvuy4lee6jvgwlgi2ifys33tvtdre7uqd.onion"));
+        vSeeds.push_back(CDNSSeedData("seed5", "l7h65zbo5vtcmj4gwnczuhsm4hnrfexvf2mv6cbsx4qrxscgjjwh7jad.onion"));
+        vFixedSeeds.clear();
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
 
         checkpointData.mapCheckpoints.clear();
@@ -213,7 +220,6 @@ public:
         nMinerThreads                  = 1;
         nTargetSpacing                 = 1 * 60;
         vFixedSeeds.clear();
-        vSeeds.clear();
         
         checkpointData.mapCheckpoints.clear();
         checkpointData.mapCheckpoints[0] = uint256S("0x001");
@@ -244,7 +250,6 @@ public:
         nStakeLockInterval        = 32;
         nStakeMinAge              = 5;
         vFixedSeeds.clear();
-        vSeeds.clear();
     }
     virtual void setCoinMaturity(int aCoinMaturity) { nCoinMaturity = aCoinMaturity; }
     virtual void setEnableBigRewards(bool afBigRewards) { fEnableBigReward = afBigRewards; };

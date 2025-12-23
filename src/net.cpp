@@ -1445,33 +1445,28 @@ void StopTor()
     }
 }
 
-void ThreadOnionSeed()
-{
-    // Make this thread recognisable as the tor thread
+void ThreadOnionSeed() {
     RenameThread("onionseed");
-
-    static const char*(*strOnionSeed)[1] = Params().GetNetworkID() == CBaseChainParams::TESTNET ? strTestNetOnionSeed : strMainNetOnionSeed;
-
+    LogPrintf("[DEBUG] Loading onion seeds...\n");
     int found = 0;
-
-    LogPrintf("Loading addresses from .onion seeds\n");
-
-    for (unsigned int seed_idx = 0; strOnionSeed[seed_idx][0] != NULL; seed_idx++) {
+    const std::vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
+    LogPrintf("[DEBUG] Total seeds in ChainParams: %d\n", vSeeds.size());
+    BOOST_FOREACH(const CDNSSeedData &seed, vSeeds) {
+        if (seed.host.find(".onion") == std::string::npos) continue;
         CNetAddr parsed;
-        if (
-            !parsed.SetSpecial(
-                strOnionSeed[seed_idx][0])) {
-            throw runtime_error("ThreadOnionSeed() : invalid .onion seed");
+        if (!parsed.SetSpecial(seed.host)) {
+            LogPrintf("[DEBUG] INVALID onion format: %s\n", seed.host);
+            continue;
         }
+        LogPrintf("[DEBUG] Adding valid seed: %s\n", seed.host);
         int nOneDay = 24 * 3600;
         CAddress addr = CAddress(CService(parsed, Params().GetDefaultPort()));
-        addr.nTime = GetTime() - 3 * nOneDay - GetRand(4 * nOneDay); // use a random age between 3 and 7 days old
-        found++;
-        addrman.Add(addr, parsed);
+        addr.nTime = GetTime() - 3 * nOneDay - GetRand(4 * nOneDay);
+        if (addrman.Add(addr, parsed)) found++;
     }
-
     LogPrintf("%d addresses found from .onion seeds\n", found);
 }
+
 
 void ThreadDNSAddressSeed()
 {
