@@ -83,7 +83,7 @@ void SelectBaseParams(CBaseChainParams::Network network)
 {
     switch (network) {
     case CBaseChainParams::MAIN:
-        pCurrentBaseParams = &testNetParams;
+        pCurrentBaseParams = &mainParams;
         break;
     case CBaseChainParams::TESTNET:
         pCurrentBaseParams = &testNetParams;
