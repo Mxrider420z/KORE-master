@@ -1,3 +1,4 @@
+#include <algorithm>
 // Copyright (c) 2015-2016 The Bitcoin Core developers
 // Copyright (c) 2017 The Zcash developers
 // Copyright (c) 2017-2018 The KORE developers
@@ -533,16 +534,6 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
 
         // Finally - now create the service
 
-        // [AUTOMATED PATCH] Strip Header & Encode to Base64
-        if (private_key.size() > 32 && private_key.substr(0, 2) == "==") {
-             LogPrintf("TOR PATCH: Found V3 binary key. Converting to Base64...\n");
-             std::string binaryKey = private_key.substr(32);
-             std::string base64Key = EncodeBase64((const unsigned char*)binaryKey.data(), binaryKey.size());
-             if (!base64Key.empty() && base64Key.back() == '\n') base64Key.erase(base64Key.size() - 1);
-            if (!base64Key.empty() && base64Key.back() == '\n') base64Key.pop_back();
-             private_key = "ED25519-V3:" + base64Key;
-        }
-        // [END PATCH]
                 if (private_key.empty()) // No private key, generate one
             private_key = "NEW:ED25519-V3"; // Explicitly request RSA1024 - see issue #9214
         // Request hidden service, redirect port.
