@@ -6245,6 +6245,8 @@ bool static ProcessMessageReject(CNode* pfrom, string strCommand, CDataStream& v
         // Avoid feedback loops by preventing reject messages from triggering a new reject message.
         LogPrint("net", "Unparseable reject message received\n");
     }
+    return true;
+    return true;
 }
 
 bool static ProcessMessagePing(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)

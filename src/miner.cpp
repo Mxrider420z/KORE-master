@@ -534,7 +534,7 @@ inline CMutableTransaction CreateCoinbaseTransaction_Legacy(const CScript& scrip
     CMutableTransaction txNew;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
-    txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
+    txNew.vin[0].scriptSig = (fProofOfStake ? CScript() : (CScript() << nHeight << OP_0));
     txNew.nTime = GetAdjustedTime();
     txNew.SetVersion(1);
 
