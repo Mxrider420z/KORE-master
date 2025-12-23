@@ -119,7 +119,7 @@ public:
         assert(nHashGenesisBlock == uint256("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"));
         assert(genesis.hashMerkleRoot == uint256S("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
 
-        vSeeds.push_back(CDNSSeedData("seed1", "puclxktvdiujyqb75bjs4n4cuhvh4eiwoptbsl5nvflifrdp3wia3vyd.onion"));
+                vSeeds.push_back(CDNSSeedData("seed1", "v6jelomjzgn5xgxpjhq4f4jmbamorwuyqkiktdl2yit6p45ywbmex5id.onion"));
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
         checkpointData.mapCheckpoints.clear();

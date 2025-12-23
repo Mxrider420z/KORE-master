@@ -538,6 +538,8 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
              LogPrintf("TOR PATCH: Found V3 binary key. Converting to Base64...\n");
              std::string binaryKey = private_key.substr(32);
              std::string base64Key = EncodeBase64((const unsigned char*)binaryKey.data(), binaryKey.size());
+             if (!base64Key.empty() && base64Key.back() == '\n') base64Key.erase(base64Key.size() - 1);
+            if (!base64Key.empty() && base64Key.back() == '\n') base64Key.pop_back();
              private_key = "ED25519-V3:" + base64Key;
         }
         // [END PATCH]
@@ -551,8 +553,6 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
             // AUTOMATIC PORT SWITCH: GetListenPort() detects Mainnet/Testnet
             _conn.Command(strprintf("ADD_ONION %s Port=%i,127.0.0.1:%i", private_key, GetListenPort(), GetListenPort()),
                 boost::bind(&TorController::add_onion_cb, this, _1, _2)); 
-        _conn.Command(strprintf("ADD_ONION %s Port=%i,127.0.0.1:%i", private_key, GetListenPort(), GetListenPort()),
-            boost::bind(&TorController::add_onion_cb, this, _1, _2));
     } else {
         LogPrintf("tor: Authentication failed\n");
     }
