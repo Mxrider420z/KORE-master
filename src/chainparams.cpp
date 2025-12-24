@@ -124,7 +124,20 @@ public:
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
         checkpointData.mapCheckpoints.clear();
+        // Kore Checkpoints (Restored + Restart 1051914)
+        checkpointData.mapCheckpoints.clear();
         checkpointData.mapCheckpoints[0] = nHashGenesisBlock;
+        checkpointData.mapCheckpoints[5] = uint256S("0x00eaaa465402e6bcf745c00c38c0033a26e4dea19448d9109e4555943d677a31");
+        checkpointData.mapCheckpoints[1000] = uint256S("0x2073f0a245cedde8344c2d0b48243a58908ffa50b02e2378189f2bb80037abd9");
+        checkpointData.mapCheckpoints[40000] = uint256S("0x572b31cc34f842aecbbc89083f7e40fff6a07e73e6002be75cb95468f4e3b4ca");
+        checkpointData.mapCheckpoints[80000] = uint256S("0x070aa76a8a879f3946322086a542dd9e4afca81efafd7642192ed9fe56ba74f1");
+        checkpointData.mapCheckpoints[120000] = uint256S("0x70edc85193638b8adadb71ea766786d207f78a173dd13f965952eb76932f5729");
+        checkpointData.mapCheckpoints[209536] = uint256S("0x8a718dbb44b57a5693ac70c951f2f81a01b39933e3e19e841637f757598f571a");
+        checkpointData.mapCheckpoints[300000] = uint256S("0xb0d6c4c7240b03e70587bb52ebdc63a694a90f22b30fb73856b5cc3d192a231f");
+        checkpointData.mapCheckpoints[400000] = uint256S("0x59aee83d1f027d2107a8a9c4951767a27eb2224b24022b89f6b9247d2ebb4fdd");
+        checkpointData.mapCheckpoints[450000] = uint256S("0xa03c16b67f4c8303e0df024b81de65619ebe5f30cc7cd02fe2049b384f2a3a84");
+        checkpointData.mapCheckpoints[530000] = uint256S("0xed517719cd2f28babe67259cf12421c5dee60f3f53bbd91d17797b3b37ef2172");
+        checkpointData.mapCheckpoints[1051914] = uint256S("0xa6a0cb76d1842d4cae62be13a3c54cc9669cc46bd89dfb44fb48cfebfefe0b86");
         checkpointData.mapCheckpoints[1051914] = uint256S("0xa6a0cb76d1842d4cae62be13a3c54cc9669cc46bd89dfb44fb48cfebfefe0b86");
         checkpointData.mapCheckpoints[5] = uint256S("0x00eaaa465402e6bcf745c00c38c0033a26e4dea19448d9109e4555943d677a31");
 
