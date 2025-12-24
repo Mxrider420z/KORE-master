@@ -2073,6 +2073,9 @@ int GetBestPeerHeight()
 
 bool IsInitialBlockDownload()
 {
+    // [KORE-FIX] Restart Mainnet: Force mining on top of block 1051914
+    if (chainActive.Height() == 1051914) return false;
+
     const CChainParams& chainParams = Params();
     LOCK(cs_main);
     if (fImporting || fReindex || fVerifyingBlocks || chainActive.Height() < Checkpoints::GetTotalBlocksEstimate())
