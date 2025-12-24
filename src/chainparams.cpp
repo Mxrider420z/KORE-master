@@ -125,6 +125,7 @@ public:
 
         checkpointData.mapCheckpoints.clear();
         checkpointData.mapCheckpoints[0] = nHashGenesisBlock;
+        checkpointData.mapCheckpoints[1051914] = uint256S("0xa6a0cb76d1842d4cae62be13a3c54cc9669cc46bd89dfb44fb48cfebfefe0b86");
         checkpointData.mapCheckpoints[5] = uint256S("0x00eaaa465402e6bcf745c00c38c0033a26e4dea19448d9109e4555943d677a31");
 
         chainTxData.nTime    = 1560981536;
