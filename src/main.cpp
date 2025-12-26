@@ -2076,8 +2076,6 @@ bool IsInitialBlockDownload()
     // [KORE-FIX] Restart Mainnet: Force mining on top of block 2438947
     if (chainActive.Height() == 2438947) return false;
 
-    // [KORE-FIX] Restart Mainnet: Force mining on top of block 1051914
-    if (chainActive.Height() == 1051914) return false;
 
     const CChainParams& chainParams = Params();
     LOCK(cs_main);
