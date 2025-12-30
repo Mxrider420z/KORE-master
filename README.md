@@ -181,29 +181,6 @@ cd ..
 make -j$(nproc)
 ```
 
-### Troubleshooting
-
-#### Error: "cannot find -lproxy" or similar library errors
-Install the missing development libraries:
-```bash
-sudo apt-get install -y libproxy-dev libglib2.0-dev libpng-dev libharfbuzz-dev libicu-dev libpcre3-dev
-```
-
-#### Error: "Autoconf version 2.71 or higher is required"
-This has been fixed in the source. If you encounter this on an older checkout, ensure you have the latest code:
-```bash
-git pull origin test2
-```
-
-#### Error: "relocation R_X86_64_32S against ... can not be used when making a shared object; recompile with -fPIC"
-This occurs when static libraries are not compiled with position-independent code. This has been fixed in the depends system. Ensure you have the latest code and rebuild depends:
-```bash
-git pull origin test2
-cd depends
-rm -rf built work
-make
-```
-
 ### Build Output
 
 After successful compilation, you will find:
