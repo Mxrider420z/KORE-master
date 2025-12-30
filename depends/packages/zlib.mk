@@ -6,10 +6,11 @@ $(package)_sha256_hash=9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03
 
 define $(package)_set_vars
 $(package)_config_opts=--static --prefix=$(host_prefix)
+$(package)_cflags_linux=-fPIC
 endef
 
 define $(package)_config_cmds
-  ./configure $($(package)_config_opts)
+  CFLAGS="$($(package)_cflags)" ./configure $($(package)_config_opts)
 endef
 
 define $(package)_build_cmds

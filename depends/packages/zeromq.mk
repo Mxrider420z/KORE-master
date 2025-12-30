@@ -6,6 +6,7 @@ $(package)_sha256_hash=c593001a89f5a85dd2ddf564805deb860e02471171b3f204944857336
 
 define $(package)_set_vars
 $(package)_config_opts=--without-docs --disable-shared --enable-static --disable-dependency-tracking --without-libsodium --enable-curve=no --disable-libunwind --disable-perf --disable-Werror
+$(package)_config_opts_linux=--with-pic
 endef
 
 define $(package)_config_cmds
