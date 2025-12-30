@@ -87,7 +87,7 @@ make deploy
 
 ### 5. Installing kore (.deb)
 ```bash
-  The installer is generated in the share folder, so in order to install it, give the following command: 
+  The installer is generated in the share folder, so in order to install it, give the following command:
   cd <kore-dir>/share
   sudo apt install ./kore_<version>_amd64.deb
   * <kore-dir> is the directory where you download the kore git repository
@@ -95,4 +95,120 @@ make deploy
   ** if you get problems with old version, you can remove with the command:
     sudo apt-get remove kore --purge -y
 ```
+
+---
+
+## Building on Older Systems (Ubuntu 16.04 / Linux Mint 18.x)
+
+This section provides additional instructions for building KORE on older Linux distributions such as Ubuntu 16.04 LTS and Linux Mint 18.x.
+
+### Additional Dependencies for Older Systems
+
+On Ubuntu 16.04 / Mint 18.x, you need additional libraries for Qt5 linking:
+
+```bash
+sudo apt-get install -y \
+  libproxy-dev \
+  libglib2.0-dev \
+  libpng-dev \
+  libharfbuzz-dev \
+  libicu-dev \
+  libpcre3-dev
+```
+
+### Qt5 Tool Paths
+
+The Qt5 tool paths differ between distributions. Check your paths:
+
+```bash
+ls /usr/lib/*/qt5/bin/
+```
+
+**Ubuntu 22.04 / Newer systems:**
+```
+MOC=/usr/lib/qt5/bin/moc
+UIC=/usr/lib/qt5/bin/uic
+RCC=/usr/lib/qt5/bin/rcc
+LRELEASE=/usr/lib/qt5/bin/lrelease
+```
+
+**Ubuntu 16.04 / Mint 18.x:**
+```
+MOC=/usr/lib/x86_64-linux-gnu/qt5/bin/moc
+UIC=/usr/lib/x86_64-linux-gnu/qt5/bin/uic
+RCC=/usr/lib/x86_64-linux-gnu/qt5/bin/rcc
+LRELEASE=/usr/lib/x86_64-linux-gnu/qt5/bin/lrelease
+```
+
+### Full Build Commands for Mint 18.x / Ubuntu 16.04
+
+```bash
+# 1. Install all dependencies
+sudo apt-get update
+sudo apt-get install -y git curl jq wget bsdmainutils rsync
+sudo apt-get install -y software-properties-common
+sudo apt-get install -y autotools-dev autoconf automake build-essential
+sudo apt-get install -y qttools5-dev-tools qttools5-dev libprotobuf-dev libqrencode-dev
+sudo apt-get install -y libtool pkg-config protobuf-compiler python3
+sudo apt-get install -y devscripts debhelper
+sudo apt-get install -y libproxy-dev libglib2.0-dev libpng-dev libharfbuzz-dev libicu-dev libpcre3-dev
+
+# 2. Clone repository
+git clone https://github.com/AluNode/KORE.git
+cd KORE
+
+# 3. Build depends
+cd depends
+make
+cd ..
+
+# 4. Generate build files
+./autogen.sh
+
+# 5. Configure with correct Qt5 paths for Mint 18.x
+./configure --with-gui=qt5 \
+  --prefix=$(pwd)/depends/x86_64-pc-linux-gnu \
+  --disable-tests \
+  --enable-tor-browser \
+  --disable-dependency-tracking \
+  --disable-maintainer-mode \
+  MOC=/usr/lib/x86_64-linux-gnu/qt5/bin/moc \
+  UIC=/usr/lib/x86_64-linux-gnu/qt5/bin/uic \
+  RCC=/usr/lib/x86_64-linux-gnu/qt5/bin/rcc \
+  LRELEASE=/usr/lib/x86_64-linux-gnu/qt5/bin/lrelease
+
+# 6. Build
+make -j$(nproc)
+```
+
+### Troubleshooting
+
+#### Error: "cannot find -lproxy" or similar library errors
+Install the missing development libraries:
+```bash
+sudo apt-get install -y libproxy-dev libglib2.0-dev libpng-dev libharfbuzz-dev libicu-dev libpcre3-dev
+```
+
+#### Error: "Autoconf version 2.71 or higher is required"
+This has been fixed in the source. If you encounter this on an older checkout, ensure you have the latest code:
+```bash
+git pull origin test2
+```
+
+#### Error: "relocation R_X86_64_32S against ... can not be used when making a shared object; recompile with -fPIC"
+This occurs when static libraries are not compiled with position-independent code. This has been fixed in the depends system. Ensure you have the latest code and rebuild depends:
+```bash
+git pull origin test2
+cd depends
+rm -rf built work
+make
+```
+
+### Build Output
+
+After successful compilation, you will find:
+- `src/kored` - KORE daemon
+- `src/kore-cli` - Command-line interface
+- `src/kore-tx` - Transaction utility
+- `src/qt/kore-qt` - Qt5 GUI wallet
 
