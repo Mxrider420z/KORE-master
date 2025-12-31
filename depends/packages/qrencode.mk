@@ -1,8 +1,8 @@
 package=qrencode
 $(package)_version=4.1.1
-$(package)_download_path=https://github.com/fukuchi/libqrencode/releases/download/v$($(package)_version)
-$(package)_file_name=$(package)-$($(package)_version).tar.bz2
-$(package)_sha256_hash=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5
+$(package)_download_path=https://fukuchi.org/works/qrencode
+$(package)_file_name=$(package)-$($(package)_version).tar.gz
+$(package)_sha256_hash=da448ed4f52aba6bcb0cd48cac0dd51b8692bccc4cd127431402fca6f8171e8e
 
 define $(package)_set_vars
 $(package)_config_opts=--disable-shared -without-tools --disable-sdltest
