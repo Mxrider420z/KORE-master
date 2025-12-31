@@ -1,8 +1,8 @@
 package=miniupnpc
-$(package)_version=2.0.20170509
+$(package)_version=2.2.8
 $(package)_download_path=http://miniupnp.free.fr/files
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=d3c368627f5cdfb66d3ebd64ca39ba54d6ff14a61966dbecb8dd296b7039f16a
+$(package)_sha256_hash=05b929679091b9921b6b6c1f25e39e4c8d1f4d46c8feb55a412aa697aee03a93
 
 define $(package)_set_vars
 $(package)_build_opts=CC="$($(package)_cc)"
@@ -13,17 +13,17 @@ $(package)_build_env+=CFLAGS="$($(package)_cflags) $($(package)_cppflags)" AR="$
 endef
 
 define $(package)_preprocess_cmds
-  mkdir dll && \
-  sed -e 's|MINIUPNPC_VERSION_STRING \"version\"|MINIUPNPC_VERSION_STRING \"$($(package)_version)\"|' -e 's|OS/version|$(host)|' miniupnpcstrings.h.in > miniupnpcstrings.h && \
+  mkdir -p dll build && \
+  sed -e 's|MINIUPNPC_VERSION_STRING \"version\"|MINIUPNPC_VERSION_STRING \"$($(package)_version)\"|' -e 's|OS/version|$(host)|' miniupnpcstrings.h.in > build/miniupnpcstrings.h && \
   sed -i.old "s|miniupnpcstrings.h: miniupnpcstrings.h.in wingenminiupnpcstrings|miniupnpcstrings.h: miniupnpcstrings.h.in|" Makefile.mingw
 endef
 
 define $(package)_build_cmds
-	$(MAKE) libminiupnpc.a $($(package)_build_opts)
+	$(MAKE) build/libminiupnpc.a $($(package)_build_opts)
 endef
 
 define $(package)_stage_cmds
 	mkdir -p $($(package)_staging_prefix_dir)/include/miniupnpc $($(package)_staging_prefix_dir)/lib &&\
-	install *.h $($(package)_staging_prefix_dir)/include/miniupnpc &&\
-	install libminiupnpc.a $($(package)_staging_prefix_dir)/lib
+	install include/*.h $($(package)_staging_prefix_dir)/include/miniupnpc &&\
+	install build/libminiupnpc.a $($(package)_staging_prefix_dir)/lib
 endef

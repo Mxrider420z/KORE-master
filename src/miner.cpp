@@ -1198,8 +1198,8 @@ void updateStaking2KoreConf( bool staking )
     std::string strNew = strprintf("staking=%s", stakingFlag);
 
 
-    boost::filesystem::ifstream streamConfig(GetConfigFile());
     boost::filesystem::path pathConfig = GetConfigFile();
+    std::ifstream streamConfig(pathConfig.string());
     if(!streamConfig || !boost::filesystem::exists(pathConfig))
         LogPrintf("Error opening files!");
 

@@ -32,6 +32,7 @@
 
 using namespace RPCServer;
 using namespace std;
+using namespace boost::placeholders;
 
 static CCriticalSection cs_rpcWarmup;
 static bool fRPCRunning = false;

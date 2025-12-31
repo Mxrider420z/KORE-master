@@ -1,9 +1,9 @@
 package=protobuf
-$(package)_version=$(native_$(package)_version)
-$(package)_download_path=$(native_$(package)_download_path)
-$(package)_file_name=$(native_$(package)_file_name)
-$(package)_sha256_hash=$(native_$(package)_sha256_hash)
-$(package)_dependencies=native_$(package)
+$(package)_version=3.21.12
+$(package)_download_path=https://github.com/protocolbuffers/protobuf/releases/download/v21.12
+$(package)_file_name=protobuf-cpp-$($(package)_version).tar.gz
+$(package)_sha256_hash=4eab9b524aa5913c6fffb20b2a8abf5ef7f95a80bc0701f3a6dbb4c607f73460
+$(package)_dependencies=native_protobuf
 $(package)_cxxflags=-std=c++11
 
 define $(package)_set_vars

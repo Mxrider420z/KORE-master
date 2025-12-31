@@ -5,53 +5,10 @@
 SUBDIRS = secp256k1 univalue
 DIST_SUBDIRS = secp256k1 univalue
 
-TOR_UTIL_LIBS = \
-  -ltor-geoip \
-	-ltor-process \
-  -ltor-buf \
-  -ltor-pubsub \
-	-ltor-dispatch \
-	-ltor-time \
-	-ltor-fs \
-	-ltor-encoding \
-	-ltor-sandbox \
-	-ltor-container \
-	-ltor-net \
-	-ltor-thread \
-	-ltor-memarea \
-	-ltor-math \
-	-ltor-meminfo \
-	-ltor-osinfo \
-	-ltor-log \
-	-ltor-lock \
-	-ltor-fdio \
-	-ltor-string \
-	-ltor-term \
-	-ltor-smartlist-core \
-	-ltor-malloc \
-	-ltor-wallclock \
-	-ltor-err \
-  -ltor-version \
-	-ltor-intmath \
-  -ltor-ctime
-
-TOR_CRYPTO_LIBS = \
-	-ltor-tls \
-	-ltor-crypt-ops \
-	-lkeccak-tiny \
-	-lcurve25519_donna \
-  -led25519_ref10 \
-  -led25519_donna  
-
-
-TOR_LIBS = \
-  -ltor-app \
-	-ltor-compress \
-	-ltor-evloop \
-	$(TOR_CRYPTO_LIBS) \
-	$(TOR_UTIL_LIBS) \
-	-lor-trunnel \
-	-ltor-trace
+# Tor 0.4.8+ uses a single libtor.a library
+TOR_UTIL_LIBS =
+TOR_CRYPTO_LIBS =
+TOR_LIBS = -ltor
 
 LIBS+= -lssl -lcrypto
 

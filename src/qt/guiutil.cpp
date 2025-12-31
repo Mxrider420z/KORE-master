@@ -726,7 +726,7 @@ boost::filesystem::path static GetAutostartFilePath()
 
 bool GetStartOnSystemStartup()
 {
-    boost::filesystem::ifstream optionFile(GetAutostartFilePath());
+    std::ifstream optionFile(GetAutostartFilePath().string());
     if (!optionFile.good())
         return false;
     // Scan through file for "Hidden=true":
@@ -754,7 +754,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
 
         boost::filesystem::create_directories(GetAutostartDir());
 
-        boost::filesystem::ofstream optionFile(GetAutostartFilePath(), std::ios_base::out | std::ios_base::trunc);
+        std::ofstream optionFile(GetAutostartFilePath().string(), std::ios_base::out | std::ios_base::trunc);
         if (!optionFile.good())
             return false;
         // Write a kore.desktop file to the autostart directory:

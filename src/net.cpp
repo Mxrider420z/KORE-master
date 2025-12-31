@@ -1192,6 +1192,7 @@ void ThreadMapPort()
     const char* minissdpdpath = 0;
     struct UPNPDev* devlist = 0;
     char lanaddr[64];
+    char wanaddr[64];
 
 #ifndef UPNPDISCOVER_SUCCESS
     /* miniupnpc 1.5 */
@@ -1210,7 +1211,12 @@ void ThreadMapPort()
     struct IGDdatas data;
     int r;
 
+#if MINIUPNPC_API_VERSION >= 18
+    /* miniupnpc 2.2.x added wanaddr parameter */
+    r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr), wanaddr, sizeof(wanaddr));
+#else
     r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr));
+#endif
     if (r == 1) {
         if (fDiscover) {
             char externalIPAddress[40];

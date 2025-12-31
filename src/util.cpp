@@ -467,7 +467,7 @@ boost::filesystem::path GetConfigFile()
 
 void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<string> >& mapMultiSettingsRet)
 {
-    boost::filesystem::ifstream streamConfig(GetConfigFile());
+    std::ifstream streamConfig(GetConfigFile().string());
     if (!streamConfig.good()) {
         // Create empty kore.conf if it does not exist
         FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
@@ -506,8 +506,8 @@ void UpdateConfigFileKeyBool( const std::string key, bool value )
     std::string strNew = strprintf(key+"=%s", stringValue);
 
 
-    boost::filesystem::ifstream streamConfig(GetConfigFile());
     boost::filesystem::path pathConfig = GetConfigFile();
+    std::ifstream streamConfig(pathConfig.string());
     if(!streamConfig || !boost::filesystem::exists(pathConfig))
         LogPrintf("Error opening files!");
 
@@ -548,7 +548,7 @@ void UpdateConfigFileKeyBool( const std::string key, bool value )
 void CreateTorrcFile(boost::filesystem::path & torDir)
 {
     boost::filesystem::path torFilePath = torDir / "torrc";
-    boost::filesystem::ifstream streamConfig(torFilePath);
+    std::ifstream streamConfig(torFilePath.string());
     if (!streamConfig.good()) {
         TryCreateDirectory(torDir);
         // lets create the torrc file
@@ -562,7 +562,7 @@ void CreateTorrcFile(boost::filesystem::path & torDir)
 
 bool CheckTorHasBridges(boost::filesystem::path torrcFilePath)
 {
-    boost::filesystem::ifstream torrcFile(torrcFilePath);
+    std::ifstream torrcFile(torrcFilePath.string());
     bool found = false;
     if (torrcFile.is_open()) {
         std::cmatch m;         
