@@ -6,6 +6,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "clientversion.h"
+#include "chainparamsbase.h"
 #include "init.h"
 #include "main.h"
 #include "noui.h"
@@ -84,10 +85,22 @@ bool AppInit(int argc, char* argv[])
     }
 
     try {
+        // Select base network params first (needed for network-specific paths)
+        if (!SelectBaseParamsFromCommandLine()) {
+            fprintf(stderr, "Error: Invalid combination of -regtest and -testnet.\n");
+            return false;
+        }
+
         if (!boost::filesystem::is_directory(GetDataDir(false))) {
             fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", mapArgs["-datadir"].c_str());
             return false;
         }
+
+        // Generate default configuration file if it doesn't exist
+        if (!GenerateDefaultConfig()) {
+            fprintf(stderr, "Warning: Could not generate default configuration file.\n");
+        }
+
         try {
             ReadConfigFile(mapArgs, mapMultiArgs);
         } catch (std::exception& e) {

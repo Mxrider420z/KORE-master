@@ -458,11 +458,36 @@ void ClearDatadirCache()
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "kore.conf"));
-    if (!pathConfigFile.is_complete())
-        pathConfigFile = GetDataDir(false) / pathConfigFile;
+    namespace fs = boost::filesystem;
 
-    return pathConfigFile;
+    fs::path pathConfigFile(GetArg("-conf", "kore.conf"));
+
+    // If absolute path specified, use as-is
+    if (pathConfigFile.is_complete()) {
+        return pathConfigFile;
+    }
+
+    // Check network-specific directory first (new behavior)
+    // Only use network-specific path if base params are configured
+    if (AreBaseParamsConfigured()) {
+        fs::path netSpecificPath = GetDataDir(true) / pathConfigFile;
+        if (fs::exists(netSpecificPath)) {
+            return netSpecificPath;
+        }
+    }
+
+    // Fall back to base directory for backward compatibility
+    fs::path basePath = GetDataDir(false) / pathConfigFile;
+    if (fs::exists(basePath)) {
+        return basePath;
+    }
+
+    // Neither exists - return network-specific path for new file creation
+    // If base params not configured, fall back to base directory
+    if (AreBaseParamsConfigured()) {
+        return GetDataDir(true) / pathConfigFile;
+    }
+    return basePath;
 }
 
 void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<string> >& mapMultiSettingsRet)
@@ -873,4 +898,105 @@ void SetThreadPriority(int nPriority)
     setpriority(PRIO_PROCESS, 0, nPriority);
 #endif // PRIO_THREAD
 #endif // WIN32
+}
+
+std::string GenerateRPCUser()
+{
+    unsigned char buf[4];
+    GetRandBytes(buf, sizeof(buf));
+    return "koreuser_" + HexStr(buf, buf + sizeof(buf));
+}
+
+std::string GenerateRPCPassword()
+{
+    unsigned char buf[32];
+    GetRandBytes(buf, sizeof(buf));
+    return HexStr(buf, buf + sizeof(buf));
+}
+
+bool GenerateDefaultConfig()
+{
+    namespace fs = boost::filesystem;
+
+    // Get the config file path (network-specific)
+    fs::path configPath = GetConfigFile();
+
+    // Do not overwrite existing configuration
+    if (fs::exists(configPath)) {
+        return true;
+    }
+
+    // Ensure parent directory exists
+    fs::path parentDir = configPath.parent_path();
+    if (!parentDir.empty()) {
+        try {
+            fs::create_directories(parentDir);
+        } catch (const fs::filesystem_error& e) {
+            LogPrintf("Error creating config directory: %s\n", e.what());
+            return false;
+        }
+    }
+
+    // Generate secure credentials
+    std::string rpcUser = GenerateRPCUser();
+    std::string rpcPassword = GenerateRPCPassword();
+
+    // Determine network type from base params
+    std::string networkName;
+    std::string networkFlag;
+
+    // Check command line args to determine network
+    bool fTestNet = GetBoolArg("-testnet", false);
+    bool fRegTest = GetBoolArg("-regtest", false);
+
+    if (fRegTest) {
+        networkName = "regtest";
+        networkFlag = "regtest=1";
+    } else if (fTestNet) {
+        networkName = "testnet3";
+        networkFlag = "testnet=1";
+    } else {
+        networkName = "mainnet";
+        networkFlag = "";
+    }
+
+    // Write configuration file
+    std::ofstream configFile(configPath.string().c_str());
+    if (!configFile.is_open()) {
+        LogPrintf("Error: Unable to create configuration file %s\n", configPath.string());
+        return false;
+    }
+
+    configFile << "# KORE Configuration File\n";
+    configFile << "# Auto-generated with secure random credentials\n";
+    configFile << "# Network: " << networkName << "\n";
+    configFile << "#\n\n";
+
+    // Write network flag if not mainnet
+    if (!networkFlag.empty()) {
+        configFile << "# Network Selection\n";
+        configFile << networkFlag << "\n\n";
+    }
+
+    configFile << "# RPC Authentication\n";
+    configFile << "rpcuser=" << rpcUser << "\n";
+    configFile << "rpcpassword=" << rpcPassword << "\n\n";
+
+    configFile << "# Server Settings\n";
+    configFile << "daemon=1\n";
+    configFile << "server=1\n";
+    configFile << "listen=1\n";
+
+    configFile.close();
+
+    // Set restrictive file permissions (Unix only)
+#ifndef WIN32
+    if (chmod(configPath.string().c_str(), 0600) != 0) {
+        LogPrintf("Warning: Unable to set permissions on %s\n", configPath.string());
+    }
+#endif
+
+    LogPrintf("Generated configuration file: %s\n", configPath.string());
+
+    return true;
 }

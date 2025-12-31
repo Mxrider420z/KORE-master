@@ -28,6 +28,7 @@
 #include "walletmodel.h"
 #endif
 
+#include "chainparamsbase.h"
 #include "init.h"
 #include "main.h"
 #include "rpcserver.h"
@@ -601,6 +602,19 @@ int main(int argc, char* argv[])
             QObject::tr("Error: Specified data directory \"%1\" does not exist.").arg(QString::fromStdString(mapArgs["-datadir"])));
         return 1;
     }
+
+    // Select base network params first (needed for network-specific paths)
+    if (!SelectBaseParamsFromCommandLine()) {
+        QMessageBox::critical(0, QObject::tr("KORE Core"),
+            QObject::tr("Error: Invalid combination of -regtest and -testnet."));
+        return 1;
+    }
+
+    // Generate default configuration file if it doesn't exist
+    if (!GenerateDefaultConfig()) {
+        qWarning() << "Warning: Could not generate default configuration file.";
+    }
+
     try {
         ReadConfigFile(mapArgs, mapMultiArgs);
     } catch (std::exception& e) {

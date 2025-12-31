@@ -115,6 +115,19 @@ boost::filesystem::path GetTempPath();
 void ShrinkDebugFile();
 void runCommand(std::string strCommand);
 
+/** Generate a random RPC username */
+std::string GenerateRPCUser();
+
+/** Generate a cryptographically secure RPC password */
+std::string GenerateRPCPassword();
+
+/**
+ * Generate default configuration file if it doesn't exist
+ * Creates network-specific config with secure random RPC credentials
+ * @return true if config exists or was created successfully
+ */
+bool GenerateDefaultConfig();
+
 inline bool IsSwitchChar(char c)
 {
 #ifdef WIN32
