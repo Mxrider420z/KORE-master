@@ -178,14 +178,14 @@ public:
         nTargetSpacing                          = 1 * 57;
 
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
-        
-        // LOCKED GENESIS (Dec 22, 2025)
-        // Time: 1766436786, Nonce: 82026
-        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1766436786, 82026, 2500634, 64441706, 0x1e0ffff0, 1, 49 * COIN);
+
+        // LOCKED GENESIS (Jan 1, 2026) - Protocol v3.0
+        // Message: "Today we start a new Kore age"
+        genesis = CreateGenesisBlock("Today we start a new Kore age", genesisOutputScript, 1767306600, 1417504, 1417504, 1417505, 0x1e0ffff0, 1, 49 * COIN);
 
         nHashGenesisBlock = genesis.GetHash();
-        assert(nHashGenesisBlock == uint256S("0x00000eef716955bf46b1fe8bb16f3fa8fff39eed2271e9d62b446626f215917a"));
-        assert(genesis.hashMerkleRoot == uint256S("0xf17f603406f28cad494ccc4c03f1832abe2df5d0cd3c766f305fc9ad84139cba"));
+        assert(nHashGenesisBlock == uint256S("0x000004e8d58f249b462295f2cfefb969f7c0469e02f5087217c06b6037f2c7db"));
+        assert(genesis.hashMerkleRoot == uint256S("0x37c655a8a361c26f846eb8c30250ff62cc4baeffc4fe85901bd06a1fed3d844e"));
 
         
         vSeeds.clear(); // [KORE-FIX] Wipe Mainnet seeds first
@@ -201,7 +201,7 @@ public:
         checkpointData.mapCheckpoints.clear();
         checkpointData.mapCheckpoints[0] = nHashGenesisBlock;
 
-        chainTxData.nTime    = 1766436786;
+        chainTxData.nTime    = 1767306600;
         chainTxData.nTxCount = 0;
         chainTxData.dTxRate  = 0.0;
     }
