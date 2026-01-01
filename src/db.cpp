@@ -82,6 +82,8 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
     if (GetBoolArg("-privdb", true))
         nEnvFlags |= DB_PRIVATE;
 
+    // Configure BDB environment parameters
+    // These must be set before opening the environment
     dbenv.set_lg_dir(pathLogDir.string().c_str());
     dbenv.set_cachesize(0, 0x2000000, 1); // 32 MiB for PoS wallet operations
     dbenv.set_lg_bsize(10485760); // 10 MiB log buffer for reduced I/O during sync
@@ -93,6 +95,8 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
     dbenv.set_flags(DB_AUTO_COMMIT, 1);
     dbenv.set_flags(DB_TXN_WRITE_NOSYNC, 1);
     dbenv.log_set_config(DB_LOG_AUTO_REMOVE, 1);
+
+    // First attempt: normal recovery
     int ret = dbenv.open(strPath.c_str(),
         DB_CREATE |
             DB_INIT_LOCK |
@@ -103,11 +107,97 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
             DB_RECOVER |
             nEnvFlags,
         S_IRUSR | S_IWUSR);
-    if (ret != 0)
+
+    // If normal recovery fails, try catastrophic recovery
+    if (ret == DB_RUNRECOVERY) {
+        LogPrintf("CDBEnv::Open: Normal recovery failed, attempting catastrophic recovery...\n");
+
+        // Close and reset the environment
+        dbenv.close(0);
+        dbenv.~DbEnv();
+        new (&dbenv) DbEnv(DB_CXX_NO_EXCEPTIONS);
+
+        // Reconfigure after reset
+        dbenv.set_lg_dir(pathLogDir.string().c_str());
+        dbenv.set_cachesize(0, 0x2000000, 1);
+        dbenv.set_lg_bsize(10485760);
+        dbenv.set_lg_max(104857600);
+        dbenv.set_lk_max_locks(250000);
+        dbenv.set_lk_max_objects(250000);
+        dbenv.set_lk_max_lockers(10000);
+        dbenv.set_errfile(fopen(pathErrorFile.string().c_str(), "a"));
+        dbenv.set_flags(DB_AUTO_COMMIT, 1);
+        dbenv.set_flags(DB_TXN_WRITE_NOSYNC, 1);
+        dbenv.log_set_config(DB_LOG_AUTO_REMOVE, 1);
+
+        ret = dbenv.open(strPath.c_str(),
+            DB_CREATE |
+                DB_INIT_LOCK |
+                DB_INIT_LOG |
+                DB_INIT_MPOOL |
+                DB_INIT_TXN |
+                DB_THREAD |
+                DB_RECOVER_FATAL |
+                nEnvFlags,
+            S_IRUSR | S_IWUSR);
+    }
+
+    // If catastrophic recovery also fails, try clearing environment and starting fresh
+    if (ret == DB_RUNRECOVERY) {
+        LogPrintf("CDBEnv::Open: Catastrophic recovery failed, clearing environment and retrying...\n");
+
+        // Close environment
+        dbenv.close(0);
+        dbenv.~DbEnv();
+        new (&dbenv) DbEnv(DB_CXX_NO_EXCEPTIONS);
+
+        // Remove corrupted environment files (not wallet.dat)
+        try {
+            boost::filesystem::remove_all(pathLogDir);
+            TryCreateDirectory(pathLogDir);
+        } catch (const boost::filesystem::filesystem_error& e) {
+            LogPrintf("CDBEnv::Open: Failed to clear database directory: %s\n", e.what());
+        }
+
+        // Reconfigure after reset
+        dbenv.set_lg_dir(pathLogDir.string().c_str());
+        dbenv.set_cachesize(0, 0x2000000, 1);
+        dbenv.set_lg_bsize(10485760);
+        dbenv.set_lg_max(104857600);
+        dbenv.set_lk_max_locks(250000);
+        dbenv.set_lk_max_objects(250000);
+        dbenv.set_lk_max_lockers(10000);
+        dbenv.set_errfile(fopen(pathErrorFile.string().c_str(), "a"));
+        dbenv.set_flags(DB_AUTO_COMMIT, 1);
+        dbenv.set_flags(DB_TXN_WRITE_NOSYNC, 1);
+        dbenv.log_set_config(DB_LOG_AUTO_REMOVE, 1);
+
+        // Final attempt with fresh environment
+        ret = dbenv.open(strPath.c_str(),
+            DB_CREATE |
+                DB_INIT_LOCK |
+                DB_INIT_LOG |
+                DB_INIT_MPOOL |
+                DB_INIT_TXN |
+                DB_THREAD |
+                DB_RECOVER |
+                nEnvFlags,
+            S_IRUSR | S_IWUSR);
+
+        if (ret == 0) {
+            LogPrintf("CDBEnv::Open: Environment recovered after clearing database directory.\n");
+        }
+    }
+
+    if (ret != 0) {
+        LogPrintf("CDBEnv::Open: All recovery attempts failed. Error %d: %s\n", ret, DbEnv::strerror(ret));
+        LogPrintf("CDBEnv::Open: Please backup wallet.dat, remove ~/.kore/database/ directory, and restart.\n");
         return error("CDBEnv::Open : Error %d opening database environment: %s\n", ret, DbEnv::strerror(ret));
+    }
 
     fDbEnvInit = true;
     fMockDb = false;
+    LogPrintf("CDBEnv::Open: Database environment opened successfully.\n");
     return true;
 }
 
@@ -125,6 +215,7 @@ void CDBEnv::MakeMock()
     dbenv.set_lg_max(10485760);
     dbenv.set_lk_max_locks(10000);
     dbenv.set_lk_max_objects(10000);
+    dbenv.set_lk_max_lockers(1000);  // Prevent locker exhaustion in tests
     dbenv.set_flags(DB_AUTO_COMMIT, 1);
     dbenv.log_set_config(DB_LOG_IN_MEMORY, 1);
     int ret = dbenv.open(NULL,
@@ -259,11 +350,25 @@ CDB::CDB(const std::string& strFilename, const char* pszMode, bool fFlushOnClose
                 0);
 
             if (ret != 0) {
+                // Preserve filename for error message before clearing
+                std::string strFileError = strFile;
                 delete pdb;
                 pdb = NULL;
                 --bitdb.mapFileUseCount[strFile];
                 strFile = "";
-                throw runtime_error(strprintf("CDB : Error %d, can't open database %s", ret, strFile));
+
+                // Provide helpful error message based on error type
+                if (ret == DB_RUNRECOVERY) {
+                    LogPrintf("CDB: Database %s requires recovery. Error: %s\n",
+                        strFileError, DbEnv::strerror(ret));
+                    throw runtime_error(strprintf(
+                        "CDB : Error %d (%s), can't open database %s. "
+                        "The database file may be corrupted. "
+                        "Try running with -salvagewallet or restore from backup.",
+                        ret, DbEnv::strerror(ret), strFileError));
+                }
+                throw runtime_error(strprintf("CDB : Error %d (%s), can't open database %s",
+                    ret, DbEnv::strerror(ret), strFileError));
             }
 
             if (fCreate && !Exists(string("version"))) {
