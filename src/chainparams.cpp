@@ -121,7 +121,10 @@ public:
         assert(genesis.hashMerkleRoot == uint256S("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
         
         vSeeds.push_back(CDNSSeedData("seed1", "v6jelomjzgn5xgxpjhq4f4jmbamorwuyqkiktdl2yit6p45ywbmex5id.onion"));
-        vSeeds.push_back(CDNSSeedData("seed2", "glyd53seqdplu5vx7kur3z2mwxms5lhm2kpqgnyhryzkdtd7ausoiaad.onion"));
+        vSeeds.push_back(CDNSSeedData("seed2", "36bqosg4flfz5qpdlmfedabs5okropaufvhijs74kbct3zi634vjd3id.onion"));
+        vSeeds.push_back(CDNSSeedData("seed3", "4u2txdw76e67g5rdgvemxxl5zuo5b5apow4yobo4vdpkwitusrhgn3qd.onion"));
+        vSeeds.push_back(CDNSSeedData("seed4", "e5msdouxxsygazjb5j2brx2cvetame6wrtx57n6oy3dha4zj2gnsfyid.onion"));
+        vSeeds.push_back(CDNSSeedData("seed5", "joa5johnm2ouztjp4yezenqa3plv65whtydexzu5dzpjwq6qvkirn3yd.onion"));
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
         checkpointData.mapCheckpoints.clear();
