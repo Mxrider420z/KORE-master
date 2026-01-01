@@ -4363,8 +4363,14 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     // Check timestamp
     if (fDebug)
         LogPrint("debug", "%s: block=%s  is proof of stake=%s \n", __func__, block.GetHash().ToString().c_str(), block.IsProofOfStake() ? "true" : "false");
-    
-    if (block.GetBlockTime() > GetAdjustedTime() + (fBlockIsProofOfStake ? 180 : 7200)) // 3 minute future drift for PoS
+
+    // Protocol V3: Explicitly defined maximum future block time (180 seconds / 3 minutes)
+    // This applies to all V3+ blocks regardless of PoS/PoW type
+    static const int64_t MAX_FUTURE_BLOCK_TIME_V3 = 180;
+    // Legacy: PoS uses 180s, PoW uses 7200s (2 hours)
+    int64_t nMaxFutureDrift = fBlockIsProofOfStake ? MAX_FUTURE_BLOCK_TIME_V3 : 7200;
+
+    if (block.GetBlockTime() > GetAdjustedTime() + nMaxFutureDrift)
         return state.DoS(25, error("CheckBlock(): block timestamp too far in the future"),
             REJECT_INVALID, "time-too-new");
 

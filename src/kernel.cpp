@@ -16,6 +16,24 @@
 
 using namespace std;
 
+// Protocol V3: Check if we should use V3 stake modifier algorithm
+bool UseProtocolV3(int nHeight)
+{
+    return nHeight >= Params().ProtocolV3StartHeight();
+}
+
+// Protocol V3: Compute stake modifier using Hash(Kernel + PrevModifier)
+// This provides dynamic entropy at fork boundaries instead of static PREDEFINED_MODIFIER
+uint64_t ComputeStakeModifierV2(const uint256& hashKernel, uint64_t nPrevModifier)
+{
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << hashKernel;
+    ss << nPrevModifier;
+    uint256 hashResult = ss.GetHash();
+    // Return the first 64 bits of the hash as the new stake modifier
+    return hashResult.GetLow64();
+}
+
 // Hard checkpoints of stake modifiers to ensure they are deterministic
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     boost::assign::map_list_of(0, 0xfd11f4e7u);
@@ -117,7 +135,7 @@ void StartStakeModifier_Legacy(CBlockIndex* pindexNew)
     if (pindexNew->nHeight < Params().GetLastPoWBlock()) {
         //Give a stake modifier to the first block
         // Lets give a stake modifier to the last block
-        uint64_t nStakeModifier = PREDEFINED_MODIFIER; //uint64_t("stakemodifier");
+        uint64_t nStakeModifier = PREDEFINED_MODIFIER_LEGACY;
         pindexNew->SetStakeModifier(nStakeModifier, true);
         pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
 
@@ -151,11 +169,28 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
         fGeneratedStakeModifier = true;
         return true; // genesis block's modifier is 0
     }
-    if (pindexPrev->nHeight == 0 || Params().HeightToFork() == pindexPrev->nHeight + 1) {
+    // Check for fork boundaries where we need to seed a new modifier
+    int nextHeight = pindexPrev->nHeight + 1;
+
+    // Protocol V3 fork boundary: use dynamic Hash(Kernel + PrevModifier)
+    if (UseProtocolV3(nextHeight) && !UseProtocolV3(pindexPrev->nHeight)) {
+        // First block after V3 fork: compute dynamic modifier from previous block
+        fGeneratedStakeModifier = true;
+        uint256 hashKernel = pindexPrev->GetBlockHash();
+        uint64_t nPrevMod = pindexPrev->nStakeModifier;
+        nStakeModifier = ComputeStakeModifierV2(hashKernel, nPrevMod);
+        if (GetBoolArg("-printstakemodifier", false))
+            LogPrintf("ComputeNextStakeModifier: V3 fork boundary, using dynamic modifier=%s\n",
+                      boost::lexical_cast<std::string>(nStakeModifier).c_str());
+        return true;
+    }
+
+    // Legacy fork boundary (HeightToFork): use static modifier for backward compatibility
+    if (pindexPrev->nHeight == 0 || Params().HeightToFork() == nextHeight) {
         // Give a stake modifier to the first block
         // Lets give a stake modifier First Block After Fork
-        fGeneratedStakeModifier = true;        
-        nStakeModifier = PREDEFINED_MODIFIER; //uint64_t("stakemodifier");
+        fGeneratedStakeModifier = true;
+        nStakeModifier = PREDEFINED_MODIFIER_LEGACY;
         return true;
     }
 
@@ -253,10 +288,10 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, boo
         // it was found at the last block before fork, please note that
         // we will no be able to store the last kore block, once we don't have
         // some fields in the database yet, like nFlags, nStakeModifier
-        nStakeModifier = PREDEFINED_MODIFIER; //uint64_t("stakemodifier");
+        nStakeModifier = PREDEFINED_MODIFIER_LEGACY;
 
         if(fDebug)
-            LogPrintf("GetKernelStakeModifier(): PREDEFINED_MODIFIER, nStakeModifier=%u\n", nStakeModifier);
+            LogPrintf("GetKernelStakeModifier(): PREDEFINED_MODIFIER_LEGACY, nStakeModifier=%u\n", nStakeModifier);
 
         return true;
     }
@@ -279,7 +314,7 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, boo
         if (!pindexNext) {
             // there is no more modifier generated, this situation should
             // never happen! Check your configuration
-            nStakeModifier = PREDEFINED_MODIFIER; //uint64_t("stakemodifier");
+            nStakeModifier = PREDEFINED_MODIFIER_LEGACY;
             return true;
         }
 

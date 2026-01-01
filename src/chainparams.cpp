@@ -105,6 +105,7 @@ public:
         nStakeMinAge                   = 2 * 60 * 60;
         nTargetSpacing                 = 1 * 60;
         nHeightToFork                  = 483063;
+        nProtocolV3StartHeight         = 2439950;
         nLastPOWBlock                  = 1000;
         strDevFundPubKey               = "02f6a9ccc5a81718a9abe524975cd60a73930ad047ba9d597b747f545e2fbafd9e";
         vAlertPubKey                   = ParseHex("042b0fb78026380244cc458a914dae461899b121f53bc42105d134158b9773e3fdadca67ca3015dc9c4ef9b9df91f2ef05b890a15cd2d2b85930d37376b2196002");
@@ -167,6 +168,7 @@ public:
         fEnableBigReward               = true;
         nDefaultPort                   = 21743;
         nHeightToFork                  = 101;
+        nProtocolV3StartHeight         = 13371;
         nLastPOWBlock                  = 100;
         vAlertPubKey                   = ParseHex("04cd7ce93858b4257079f4ed9150699bd9f66437ff76617690d1cc180321e94ea391bbccf3bccdcf2edaf0429e32c07b53354e9cecf458cca3fe71dc277f11d9c5");
         strDevFundPubKey               = "04fb16faf70501f5292a630bced3ec5ff4df277d637e855d129896066854e1d2c9d7cab8dbd5b98107594e74a005e127c66c13a918be477fd3827b872b33d25e03";
@@ -231,6 +233,7 @@ public:
         nDefaultPort                   = 18444;
         nHashGenesisBlock              = genesis.GetHash();
         nHeightToFork                  = 900000;
+        nProtocolV3StartHeight         = 0;
         nMinerThreads                  = 1;
         nTargetSpacing                 = 1 * 60;
         vFixedSeeds.clear();

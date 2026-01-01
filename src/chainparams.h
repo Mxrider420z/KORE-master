@@ -81,6 +81,7 @@ public:
 
     const std::vector<unsigned char>&      AlertKey() const                    { return vAlertPubKey; }
     int32_t                                HeightToFork() const                { return nHeightToFork; };
+    int32_t                                ProtocolV3StartHeight() const       { return nProtocolV3StartHeight; };
     const uint256&                         HashGenesisBlock() const            { return nHashGenesisBlock; }
     const MessageStartChars&               MessageStart() const                { return pchMessageStart; }
     const uint256&                         ProofOfWorkLimit() const            { return bnProofOfWorkLimit; }
@@ -152,7 +153,8 @@ protected:
     uint32_t                   nCoinMaturity;
     int32_t                    nDefaultPort;
     uint256                    nHashGenesisBlock;
-    int32_t                    nHeightToFork;    
+    int32_t                    nHeightToFork;
+    int32_t                    nProtocolV3StartHeight;
     MessageStartChars          pchMessageStart;
     int32_t                    nMaxReorganizationDepth;
     int64_t                    nMaxTipAge;

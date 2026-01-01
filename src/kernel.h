@@ -12,9 +12,17 @@ class COutput;
 
 // MODIFIER_INTERVAL: time to elapse before new modifier is computed
 static const unsigned int MODIFIER_INTERVAL = 60;
-static const uint64_t PREDEFINED_MODIFIER = 18030109;
+// PREDEFINED_MODIFIER: Legacy modifier for pre-V3 fork boundary (deprecated in V3)
+static const uint64_t PREDEFINED_MODIFIER_LEGACY = 18030109;
 extern unsigned int nModifierInterval;
 extern unsigned int getIntervalVersion();
+
+// Protocol V3: Check if we should use V3 stake modifier algorithm
+bool UseProtocolV3(int nHeight);
+
+// Protocol V3: Compute stake modifier using Hash(Kernel + PrevModifier)
+// This replaces the static PREDEFINED_MODIFIER at fork boundaries
+uint64_t ComputeStakeModifierV2(const uint256& hashKernel, uint64_t nPrevModifier);
 
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group
