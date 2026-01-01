@@ -4109,20 +4109,28 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
                 pindexNew->hashProofOfStake = mapProofOfStake[hash];
             }
 
-            // ppcoin: compute stake modifier
-            uint64_t nStakeModifier = 0;
+            // ppcoin: compute stake modifier (V3: 256-bit)
+            uint256 nStakeModifier256;
             bool fGeneratedStakeModifier = false;
-            if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier) && fDebug)
+            if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier256, fGeneratedStakeModifier) && fDebug)
                 LogPrintf("AddToBlockIndex() : ComputeNextStakeModifier() failed \n");
 
             if (fDebug)
-                LogPrintf("ComputeNextStakeModifier() => Block : %d Modifier Generated ? %s Modifier: %u \n", pindexNew->nHeight, fGeneratedStakeModifier ? "true" : "false", nStakeModifier);
-            
-            pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
+                LogPrintf("ComputeNextStakeModifier() => Block : %d Modifier Generated ? %s Modifier: %s \n", pindexNew->nHeight, fGeneratedStakeModifier ? "true" : "false", nStakeModifier256.ToString());
+
+            // V3: Store full 256-bit modifier for V3+ blocks
+            if (UseProtocolV3(pindexNew->nHeight)) {
+                pindexNew->nStakeModifierV2 = nStakeModifier256;
+                // Set legacy 64-bit field to low 64 bits for backward compatibility
+                pindexNew->SetStakeModifier(nStakeModifier256.GetLow64(), fGeneratedStakeModifier);
+            } else {
+                // Pre-V3: Use low 64 bits
+                pindexNew->SetStakeModifier(nStakeModifier256.GetLow64(), fGeneratedStakeModifier);
+            }
             pindexNew->nStakeModifierOld = ComputeStakeModifier_Legacy(pindexNew->pprev, block.IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindexNew->GetBlockHash());
             pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
             if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum) && fDebug)
-                LogPrintf("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=%s \n", pindexNew->nHeight, boost::lexical_cast<std::string>(nStakeModifier));
+                LogPrintf("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=%s \n", pindexNew->nHeight, nStakeModifier256.ToString());
         }
     }
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew);

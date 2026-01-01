@@ -113,7 +113,8 @@ bool CKoreStake::CreateTxOut(CWallet* pwallet, CTxOut& txOut)
     return true;
 }
 
-bool CKoreStake::GetModifier(uint64_t& nStakeModifier)
+// V3: Returns 256-bit stake modifier
+bool CKoreStake::GetModifier(uint256& nStakeModifier)
 {
     GetIndexFrom();
     if (!pindexFrom)

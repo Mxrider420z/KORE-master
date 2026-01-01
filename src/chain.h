@@ -167,8 +167,9 @@ public:
 
     // proof-of-stake specific fields
     uint256 GetBlockTrust() const;
-    uint64_t nStakeModifier;             // hash modifier for proof-of-stake
-    uint256 nStakeModifierOld;           // Old way to calculate PoS
+    uint64_t nStakeModifier;             // hash modifier for proof-of-stake (legacy 64-bit)
+    uint256 nStakeModifierOld;           // Old way to calculate PoS (pre-HeightToFork legacy)
+    uint256 nStakeModifierV2;            // V3 Protocol: Full 256-bit stake modifier
 
     unsigned int nStakeModifierChecksum; // checksum of index; in-memory only
     COutPoint prevoutStake;
@@ -211,6 +212,7 @@ public:
         nMint                  = 0;
         nFlags                 = 0;
         nStakeModifierOld      = uint256();
+        nStakeModifierV2       = uint256();
         nStakeModifierChecksum = 0;
         hashProofOfStake       = uint256();
         nStakeTime             = 0;
@@ -248,6 +250,7 @@ public:
         nFlags                 = 0;
         nStakeModifier         = 0;
         nStakeModifierOld      = uint256();
+        nStakeModifierV2       = uint256();
         nStakeModifierChecksum = 0;
         hashProofOfStake       = uint256();
 
@@ -466,6 +469,10 @@ public:
             READWRITE(nMint);
             READWRITE(nFlags);
             READWRITE(nStakeModifier);
+            // V3 Protocol: Serialize full 256-bit stake modifier for V3+ blocks
+            if (nHeight >= Params().ProtocolV3StartHeight()) {
+                READWRITE(nStakeModifierV2);
+            }
             if (IsProofOfStake()) {
                 READWRITE(prevoutStake);
                 READWRITE(nStakeTime);

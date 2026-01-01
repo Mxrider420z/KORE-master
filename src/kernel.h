@@ -20,21 +20,27 @@ extern unsigned int getIntervalVersion();
 // Protocol V3: Check if we should use V3 stake modifier algorithm
 bool UseProtocolV3(int nHeight);
 
-// Protocol V3: Compute stake modifier using Hash(Kernel + PrevModifier)
+// Protocol V3: Compute stake modifier using Hash(PrevModifier + Kernel)
+// Returns full 256-bit hash for maximum entropy (2^256 search space)
 // This replaces the static PREDEFINED_MODIFIER at fork boundaries
-uint64_t ComputeStakeModifierV2(const uint256& hashKernel, uint64_t nPrevModifier);
+uint256 ComputeStakeModifierV2(const uint256& hashKernel, const uint256& nPrevModifier);
+
+// Helper: Convert 64-bit legacy modifier to 256-bit for V3 fork boundary
+uint256 ConvertModifier64To256(uint64_t nModifier64);
 
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group
 static const int MODIFIER_INTERVAL_RATIO = 3;
 
 // Compute the hash modifier for proof-of-stake
-bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, bool fPrintProofOfStake);
+// V3: Returns 256-bit modifier for enhanced security
+bool GetKernelStakeModifier(uint256 hashBlockFrom, uint256& nStakeModifier, bool fPrintProofOfStake);
 void StartStakeModifier_Legacy(CBlockIndex* pindexNew);
-bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeModifier, bool& fGeneratedStakeModifier);
+bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint256& nStakeModifier, bool& fGeneratedStakeModifier);
 
 bool IsBelowMinAge(const COutput& output, const unsigned int nTimeBlockFrom, const unsigned int nTimeTx);
-bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t nStakeModifier, const uint256& bnTarget, unsigned int nTimeBlockFrom, unsigned int& nTimeTx);
+// V3: Uses 256-bit stake modifier for enhanced grinding resistance
+bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint256& nStakeModifier, const uint256& bnTarget, unsigned int nTimeBlockFrom, unsigned int& nTimeTx);
 bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockFrom, unsigned int& nTimeTx, CAmount stakeableBalance, const COutput& output);
 
 // Check kernel hash target and coinstake signature
