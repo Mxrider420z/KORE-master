@@ -6842,7 +6842,8 @@ bool static ProcessMessageVersion(CNode* pfrom, string strCommand, CDataStream& 
     uint64_t nNonce = 1;
     vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
 
-    int minVersion = UseLegacyCode() ? MIN_PEER_PROTO_VERSION_PRE_FORK : MIN_PEER_PROTO_VERSION;
+    int minVersion = (chainActive.Tip()->nHeight < Params().ProtocolV3StartHeight())
+                     ? MIN_PEER_PROTO_VERSION_PRE_FORK : MIN_PEER_PROTO_VERSION;
     if (pfrom->nVersion < minVersion) {
         // disconnect from peers older than this proto version
         LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
@@ -7184,7 +7185,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 int ActiveProtocol()
 {
-    return UseLegacyCode() ? MIN_PEER_PROTO_VERSION_PRE_FORK : MIN_PEER_PROTO_VERSION;
+    return (chainActive.Tip()->nHeight < Params().ProtocolV3StartHeight())
+           ? MIN_PEER_PROTO_VERSION_PRE_FORK : MIN_PEER_PROTO_VERSION;
 }
 
 // requires LOCK(cs_vRecvMsg)
