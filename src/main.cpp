@@ -7117,12 +7117,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         return false;
     }
 
-     else if (pfrom->clientVersion < MIM_CLIENT_VERSION) {
-        pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE, strprintf("Version must be %d or greater", MIM_CLIENT_VERSION));
-        Misbehaving(pfrom->GetId(), 100, "Ban due to fork");
-        pfrom->fDisconnect = true;
-        return false;
-    }
+    // NOTE: clientVersion ban check removed to allow legacy clients (pre-70102)
+    // to connect and sync pre-fork blocks. Legacy clients will naturally stop
+    // at the V3 fork boundary when they cannot validate stake modifier v2 blocks.
+    // This provides graceful degradation until next protocol version bump.
 
     else if (strCommand == NetMsgType::VERACK)
         return ProcessMessageVerAck(pfrom);

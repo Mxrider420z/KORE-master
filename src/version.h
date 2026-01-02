@@ -17,7 +17,7 @@ static const int PROTOCOL_VERSION = 70102;
 // 00 => _CLIENT_VERSION_REVISION
 // 01 => _CLIENT_VERSION_BUILD
 
-static const int MIM_CLIENT_VERSION = 130100;
+static const int MIM_CLIENT_VERSION = 140401;
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
@@ -29,7 +29,10 @@ static const int GETHEADERS_VERSION = 31800;
 static const int MIN_PEER_PROTO_VERSION_PRE_FORK = 70101;
 
 //! disconnect from peers older than this proto version
-static const int MIN_PEER_PROTO_VERSION = PROTOCOL_VERSION;
+//! Set to 70101 to allow legacy clients to connect and sync pre-fork blocks.
+//! Legacy clients will stop at fork boundary when they cannot validate V3 blocks.
+//! Raise this to 70102 at next major protocol upgrade to enforce cutoff.
+static const int MIN_PEER_PROTO_VERSION = 70101;
 
 //! nTime field added to CAddress, starting with this version;
 //! if possible, avoid requesting addresses nodes older than this
