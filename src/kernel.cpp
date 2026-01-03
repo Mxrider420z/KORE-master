@@ -182,13 +182,19 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint256& nStakeModi
         fGeneratedStakeModifier = true;
         uint256 hashKernel = pindexPrev->GetBlockHash();
 
-        // At fork boundary, convert previous 64-bit modifier to 256-bit
+        // Determine previous modifier for V3 computation
         uint256 nPrevMod;
         if (!UseProtocolV3(pindexPrev->nHeight)) {
             // Fork boundary: convert legacy 64-bit to 256-bit
             nPrevMod = ConvertModifier64To256(pindexPrev->nStakeModifier);
             if (GetBoolArg("-printstakemodifier", false))
                 LogPrintf("ComputeNextStakeModifier: V3 fork boundary at height %d, converting 64-bit modifier to 256-bit\n", nextHeight);
+        } else if (pindexPrev->nHeight == 0 || pindexPrev->nStakeModifierV2.IsNull()) {
+            // Genesis block or uninitialized V3 modifier: seed with genesis hash
+            // This handles V3-from-genesis chains (testnet/regtest with V3 height = 0)
+            nPrevMod = pindexPrev->GetBlockHash();
+            if (GetBoolArg("-printstakemodifier", false))
+                LogPrintf("ComputeNextStakeModifier: V3 genesis seed at height %d, using block hash as initial modifier\n", nextHeight);
         } else {
             // Post-fork: use previous 256-bit modifier directly
             nPrevMod = pindexPrev->nStakeModifierV2;
@@ -330,6 +336,16 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint256& nStakeModifier, bool
     // V3: Return 256-bit modifier directly
     if (UseProtocolV3(pindex->nHeight)) {
         nStakeModifier = pindex->nStakeModifierV2;
+        // Safety check: V3 modifier should never be zero (would indicate uninitialized data)
+        if (nStakeModifier.IsNull()) {
+            // At V3 boundary, compute from legacy modifier as fallback
+            if (!UseProtocolV3(pindex->nHeight - 1) && pindex->pprev) {
+                nStakeModifier = ConvertModifier64To256(pindex->pprev->nStakeModifier);
+                LogPrintf("GetKernelStakeModifier(): WARNING - V3 modifier was null at height %d, using converted legacy modifier\n", pindex->nHeight);
+            } else {
+                return error("GetKernelStakeModifier(): V3 modifier is null at height %d", pindex->nHeight);
+            }
+        }
     } else {
         // Legacy: Convert 64-bit to 256-bit
         nStakeModifier = ConvertModifier64To256(pindex->nStakeModifier);
