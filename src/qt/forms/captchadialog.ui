@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Plase Solve the Captcha</string>
+   <string>Retrieve Bridges</string>
   </property>
   <widget class="QLineEdit" name="captchaEdit">
    <property name="geometry">
@@ -29,7 +29,7 @@
     <string/>
    </property>
    <property name="placeholderText">
-    <string>Please type the image text here</string>
+    <string></string>
    </property>
   </widget>
   <widget class="QLabel" name="captchaLabel">
@@ -42,7 +42,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>   Captcha image will be place here, please wait a moment !</string>
+    <string>Fetching bridges from Tor Project...</string>
    </property>
   </widget>
   <widget class="QLabel" name="label">
@@ -68,7 +68,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>&amp;Ok</string>
+    <string>&amp;OK</string>
    </property>
   </widget>
   <widget class="QPushButton" name="cancelButton">

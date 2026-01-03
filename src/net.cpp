@@ -1347,16 +1347,43 @@ std::string GetObfs4TransportPlugin(fs::path &tor_directory)
             LogPrintf("Please check your installation. \n");            
         }    
 #else
+        // First check system-wide location
         if ((stat("/usr/local/share/kore/obfs4proxy", &sb) == 0 && sb.st_mode & S_IXUSR)) {
             LogPrintf("Transport Plugin /usr/local/share/kore/obfs4proxy as ClientTransportPlugin.\nSpecify bridges at %s\n", tor_directory);
             clientTransportPlugin = "obfs4 exec /usr/local/share/kore/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
-        } else if ((stat((obfs4path + "/obfs4proxy").c_str(), &sb) == 0 && sb.st_mode & S_IXUSR)) {
+        }
+        // Check user-specified path
+        else if ((stat((obfs4path + "/obfs4proxy").c_str(), &sb) == 0 && sb.st_mode & S_IXUSR)) {
             LogPrintf("Transport Plugin %s/obfs4proxy as ClientTransportPlugin.\nSpecify bridges at %s\n", obfs4path, tor_directory);
             clientTransportPlugin = "obfs4 exec " + obfs4path + "/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
         }
+        // Check relative to executable (e.g., ../release/obfs4proxy for in-tree builds)
         else {
-            LogPrintf("Attention Attention, Couldn't find obfs4proxy plugin \n");
-            LogPrintf("Please check your installation. \n");
+            char exePath[PATH_MAX];
+            ssize_t len = readlink("/proc/self/exe", exePath, sizeof(exePath) - 1);
+            if (len != -1) {
+                exePath[len] = '\0';
+                std::string exeDir(exePath);
+                size_t lastSlash = exeDir.rfind('/');
+                if (lastSlash != std::string::npos) {
+                    exeDir = exeDir.substr(0, lastSlash);
+                    // Try release directory (for src/qt/kore-qt -> release/obfs4proxy)
+                    std::string releasePath = exeDir + "/../../release/obfs4proxy";
+                    std::string sameDirPath = exeDir + "/obfs4proxy";
+
+                    if ((stat(releasePath.c_str(), &sb) == 0 && sb.st_mode & S_IXUSR)) {
+                        LogPrintf("Transport Plugin %s as ClientTransportPlugin.\nSpecify bridges at %s\n", releasePath, tor_directory);
+                        clientTransportPlugin = "obfs4 exec " + releasePath + " -enableLogging=true -logLevel DEBUG managed";
+                    } else if ((stat(sameDirPath.c_str(), &sb) == 0 && sb.st_mode & S_IXUSR)) {
+                        LogPrintf("Transport Plugin %s as ClientTransportPlugin.\nSpecify bridges at %s\n", sameDirPath, tor_directory);
+                        clientTransportPlugin = "obfs4 exec " + sameDirPath + " -enableLogging=true -logLevel DEBUG managed";
+                    }
+                }
+            }
+            if (clientTransportPlugin.empty()) {
+                LogPrintf("Attention Attention, Couldn't find obfs4proxy plugin \n");
+                LogPrintf("Please check your installation. \n");
+            }
         }
 #endif
     }

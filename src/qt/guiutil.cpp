@@ -252,6 +252,9 @@ void saveBridges2Torrc(const QByteArray & torrcWithoutBridges, const QStringList
     fs::path torrcPath = GetDataDir() / "tor" /  "torrc";
     QString torrcPathStr(torrcPath.string().c_str());
 
+    qDebug() << "saveBridges2Torrc: path=" << torrcPathStr;
+    qDebug() << "saveBridges2Torrc: saving" << newObfs4Bridges.size() << "bridges";
+
     // Rename the torrc if it exists
     if (QFile::exists(torrcPathStr))
     {
@@ -259,6 +262,7 @@ void saveBridges2Torrc(const QByteArray & torrcWithoutBridges, const QStringList
         int64_t now = GetTime();
         strftime (timestamp, 20,"%Y-%m-%d-%H:%M:%S", localtime(&now));
         QString newTorrcFileName = torrcPathStr + QString(timestamp);
+        qDebug() << "saveBridges2Torrc: renaming existing torrc to" << newTorrcFileName;
         QFile::rename(torrcPathStr, newTorrcFileName);
     }
 
@@ -270,7 +274,10 @@ void saveBridges2Torrc(const QByteArray & torrcWithoutBridges, const QStringList
         out << torrcWithoutBridges;
         out << newObfs4Bridges.join("\n").toUtf8().data();
         torrc.close();
-    } 
+        qDebug() << "saveBridges2Torrc: SUCCESS - wrote bridges to" << torrcPathStr;
+    } else {
+        qDebug() << "saveBridges2Torrc: FAILED to open file for writing:" << torrcPathStr;
+    }
 }
 
 bool isDust(const QString& address, const CAmount& amount)

@@ -8,16 +8,19 @@
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QUrlQuery>
 
 
 CaptchaDialog::CaptchaDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::CaptchaDialog), manager2(NULL)
+    ui(new Ui::CaptchaDialog)
 {
     ui->setupUi(this);
 
+    // Update window title - no longer using captcha
+    this->setWindowTitle(tr("Retrieve Bridges"));
+
     ui->refreshCaptchaButton->setIcon(QIcon(":/icons/refresh").pixmap(16, 16));
+    ui->refreshCaptchaButton->setText(tr("&Refresh"));
 
     manager = new QNetworkAccessManager(this);
 
@@ -25,13 +28,18 @@ CaptchaDialog::CaptchaDialog(QWidget *parent) :
     connect(manager, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError>&)),
         this, SLOT(reportSslErrors(QNetworkReply*, const QList<QSslError>&)));
 
+    connect(ui->okButton, SIGNAL(clicked(bool)), this, SLOT(on_okButton_clicked()));
 
-    //QPushButton *okButton = ui->okButton;
-    //connect(okButton , SIGNAL(accepted()), this, SLOT(on_OkButton_clicked()));
-    connect( ui->okButton, SIGNAL(clicked(bool)), this, SLOT(on_OkButton_clicked()));
+    // Hide the captcha input field - no longer needed with Moat API
+    ui->captchaEdit->hide();
+    ui->label->hide();
 
+    // Update the label to show loading status
+    ui->captchaLabel->setText(tr("Fetching bridges from Tor Project...\n\nPlease wait."));
+    ui->captchaLabel->setAlignment(Qt::AlignCenter);
 
-    requestCaptcha();
+    // Auto-fetch bridges on dialog open
+    requestBridges();
 }
 
 CaptchaDialog::~CaptchaDialog()
@@ -39,77 +47,124 @@ CaptchaDialog::~CaptchaDialog()
     delete ui;
     if (manager != NULL)
         delete manager;
-    if (manager2 != NULL)
-        delete manager2;
+}
+
+void CaptchaDialog::requestBridges()
+{
+    this->setCursor(Qt::WaitCursor);
+    bridges.clear();
+
+    ui->captchaLabel->setText(tr("Fetching bridges from Tor Project...\n\nPlease wait."));
+
+    QNetworkRequest request;
+    request.setUrl(QUrl(moatBuiltinUrl));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/vnd.api+json");
+
+    // Moat API requires POST request
+    manager->post(request, QByteArray("{}"));
 }
 
 void CaptchaDialog::managerFinished(QNetworkReply* reply)
-{    
+{
     this->setCursor(Qt::ArrowCursor);
-    captchaChallengeId.clear();
+
     if (reply->error()) {
-        qDebug() << reply->errorString();
+        qDebug() << "Network error:" << reply->errorString();
+        ui->captchaLabel->setText(tr("Error fetching bridges:\n\n%1\n\nClick Refresh to try again.")
+            .arg(reply->errorString()));
         return;
     }
 
-    QLabel *captchaLabel = ui->captchaLabel;
-
-    QString answer = reply->readAll();
-
-    QRegExp captchaChallenge("id=\"captcha_challenge_field\"\n[ ]+value=\"([^\"]+)\"");
-    if (captchaChallenge.indexIn(answer,0) != -1) {
-        captchaChallengeId = captchaChallenge.cap(1);         
-    }
-
-    QRegExp regExpr("src=\"data:image/jpeg;base64,([^\"]+)\"");
-    int pos=0;
-    if (regExpr.indexIn(answer,pos) != -1) {
-        // found the captcha
-        QString imgStr = regExpr.cap(1);        
-        QPixmap  pixmap;
-        if (pixmap.loadFromData(QByteArray::fromBase64(imgStr.toUtf8()), "JPEG")) {
-            captchaLabel->setPixmap(pixmap); 
-            captchaLabel->setAlignment(Qt::AlignHCenter);
-            captchaLabel->setScaledContents(true);
-        } else {
-            captchaLabel->setText("Could not read the captcha image");
-        }
-
-    } else {
-        captchaLabel->setText("Could not find the captcha image");
-    }
+    QByteArray data = reply->readAll();
+    parseBridgesFromJson(data);
 }
 
-void CaptchaDialog::getBridges(QString & resp)
+void CaptchaDialog::parseBridgesFromJson(const QByteArray& data)
 {
-    QRegExp bridgesExpr("(obfs4[^\\<]+)");
-    int pos = bridgesExpr.indexIn(resp);
-    if (pos == -1) {
-        // wrong captcha. request a new one
-        requestCaptcha();        
-    } else {
-        bridges = bridgesExpr.capturedTexts();
-        for ( auto & bridge : bridges) {
-            bridge.insert(0, "bridge ");
-        }
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
 
-        // cool the user solved the captcha and we have the bridges
-        // we can close this windows
-        accept();
-    }
-}
-
-void CaptchaDialog::manager2Finished(QNetworkReply* reply)
-{
-    if (reply->error()) {
-        qDebug() << reply->errorString();
+    if (parseError.error != QJsonParseError::NoError) {
+        qDebug() << "JSON parse error:" << parseError.errorString();
+        ui->captchaLabel->setText(tr("Error parsing response:\n\n%1\n\nClick Refresh to try again.")
+            .arg(parseError.errorString()));
         return;
     }
 
-    QLabel *captchaLabel = ui->captchaLabel;
+    QJsonObject root = doc.object();
 
-    QString answer = reply->readAll();
-    getBridges(answer);
+    // Check for error response
+    if (root.contains("errors")) {
+        QJsonArray errors = root["errors"].toArray();
+        QString errorMsg;
+        for (const QJsonValue& err : errors) {
+            QJsonObject errObj = err.toObject();
+            errorMsg += errObj["detail"].toString() + "\n";
+        }
+        ui->captchaLabel->setText(tr("Server error:\n\n%1\n\nClick Refresh to try again.")
+            .arg(errorMsg));
+        return;
+    }
+
+    // Parse obfs4 bridges - API returns them at root level
+    if (root.contains("obfs4")) {
+        QJsonArray obfs4Array = root["obfs4"].toArray();
+        for (const QJsonValue& val : obfs4Array) {
+            QString bridgeLine = val.toString().trimmed();
+            if (!bridgeLine.isEmpty()) {
+                // Prepend "bridge " if not already present
+                if (!bridgeLine.startsWith("bridge ")) {
+                    bridgeLine = "bridge " + bridgeLine;
+                }
+                bridges.append(bridgeLine);
+            }
+        }
+    }
+
+    // Fallback: check for bridges_builtin wrapper (alternative API format)
+    if (bridges.isEmpty() && root.contains("bridges_builtin")) {
+        QJsonObject builtinBridges = root["bridges_builtin"].toObject();
+        if (builtinBridges.contains("obfs4")) {
+            QJsonArray obfs4Array = builtinBridges["obfs4"].toArray();
+            for (const QJsonValue& val : obfs4Array) {
+                QString bridgeLine = val.toString().trimmed();
+                if (!bridgeLine.isEmpty()) {
+                    if (!bridgeLine.startsWith("bridge ")) {
+                        bridgeLine = "bridge " + bridgeLine;
+                    }
+                    bridges.append(bridgeLine);
+                }
+            }
+        }
+    }
+
+    // Check if we found any bridges
+    if (bridges.isEmpty()) {
+        ui->captchaLabel->setText(tr("No obfs4 bridges available.\n\nClick Refresh to try again,\nor get bridges manually from:\nhttps://bridges.torproject.org"));
+        return;
+    }
+
+    // Success - display the bridges
+    QString displayText = tr("Found %1 obfs4 bridge(s).\n\n").arg(bridges.size());
+
+    // Show abbreviated bridge info
+    for (int i = 0; i < bridges.size() && i < 4; i++) {
+        QString shortBridge = bridges[i];
+        if (shortBridge.length() > 60) {
+            shortBridge = shortBridge.left(60) + "...";
+        }
+        displayText += QString("%1. %2\n").arg(i + 1).arg(shortBridge);
+    }
+    if (bridges.size() > 4) {
+        displayText += tr("   ... and %1 more\n").arg(bridges.size() - 4);
+    }
+
+    displayText += tr("\nClick OK to enable obfs4.");
+
+    ui->captchaLabel->setText(displayText);
+    ui->captchaLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+    qDebug() << "Successfully fetched" << bridges.size() << "bridges from Moat API";
 }
 
 void CaptchaDialog::reportSslErrors(QNetworkReply* reply, const QList<QSslError>& errs)
@@ -121,40 +176,25 @@ void CaptchaDialog::reportSslErrors(QNetworkReply* reply, const QList<QSslError>
     Q_FOREACH (const QSslError& err, errs) {
         errString += err.errorString() + "\n";
     }
+
+    ui->captchaLabel->setText(tr("SSL Error:\n\n%1\n\nClick Refresh to try again.")
+        .arg(errString));
+
     emit message(tr("Network request error"), errString, CClientUIInterface::MSG_ERROR);
 }
 
 void CaptchaDialog::on_okButton_clicked()
 {
-    QString captchaTyped = ui->captchaEdit->text();
-
-    if (captchaTyped.isEmpty()) {
-        //this->setCursor(Qt::ArrowCursor);
+    // Check if we have bridges to use
+    if (bridges.isEmpty()) {
         QMessageBox::warning(this, windowTitle(),
-                tr("Please enter the captcha"), QMessageBox::Ok, QMessageBox::Ok);
+            tr("No bridges available. Please click Refresh to fetch bridges first."),
+            QMessageBox::Ok, QMessageBox::Ok);
         return;
     }
 
-    this->setCursor(Qt::WaitCursor);
-
-    // Lets configure a second manager
-    manager2 = new QNetworkAccessManager(this);
-    connect(manager2, SIGNAL(finished(QNetworkReply*)), this, SLOT(manager2Finished(QNetworkReply*)));
-    connect(manager2, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError>&)),
-        this, SLOT(reportSslErrors(QNetworkReply*, const QList<QSslError>&)));
-
-    // lets do the put request
-    QNetworkRequest request;
-    QUrl url(torUrl);
-    QUrlQuery query;
-    query.addQueryItem("transport","obfs4");
-    query.addQueryItem("captcha_challenge_field",captchaChallengeId);
-    query.addQueryItem("captcha_response_field",captchaTyped);
-
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    request.setUrl(url);
-
-    manager2->post(request, query.toString(QUrl::FullyEncoded).toUtf8());        
+    // Accept the dialog - bridges will be retrieved via getBridges()
+    accept();
 }
 
 void CaptchaDialog::on_cancelButton_clicked()
@@ -162,24 +202,7 @@ void CaptchaDialog::on_cancelButton_clicked()
     reject();
 }
 
-
-void CaptchaDialog::requestCaptcha()
-{
-    QNetworkRequest request;
-
-    // lets do the get request
-    this->setCursor(Qt::WaitCursor);
-    ui->captchaEdit->clear();
-    request.setUrl(QUrl(torUrl));
-    manager->get(request);
-}
-
 void CaptchaDialog::on_refreshCaptchaButton_clicked()
 {
-    requestCaptcha();
-}
-
-void CaptchaDialog::on_refreshCaptcha_clicked()
-{
-    requestCaptcha();
+    requestBridges();
 }

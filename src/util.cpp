@@ -467,27 +467,29 @@ boost::filesystem::path GetConfigFile()
         return pathConfigFile;
     }
 
-    // Check network-specific directory first (new behavior)
-    // Only use network-specific path if base params are configured
+    // When running on a specific network (testnet/regtest), always use network-specific path
+    // This ensures testnet writes to testnet3/kore.conf, not to mainnet's kore.conf
     if (AreBaseParamsConfigured()) {
         fs::path netSpecificPath = GetDataDir(true) / pathConfigFile;
+        // If network-specific config exists, use it
         if (fs::exists(netSpecificPath)) {
             return netSpecificPath;
         }
+        // If mainnet config exists, read settings from it for backward compatibility
+        // but for testnet/regtest, we still return network-specific path so writes go there
+        fs::path basePath = GetDataDir(false) / pathConfigFile;
+        if (fs::exists(basePath) && BaseParams().DataDir() != "") {
+            // We're on testnet/regtest - return network-specific path even if it doesn't exist
+            // This ensures UpdateConfigFileKeyBool writes to the correct network's config
+            LogPrintf("GetConfigFile: Using network-specific config path %s (base config exists at %s)\n",
+                      netSpecificPath.string(), basePath.string());
+            return netSpecificPath;
+        }
+        return netSpecificPath;
     }
 
-    // Fall back to base directory for backward compatibility
-    fs::path basePath = GetDataDir(false) / pathConfigFile;
-    if (fs::exists(basePath)) {
-        return basePath;
-    }
-
-    // Neither exists - return network-specific path for new file creation
-    // If base params not configured, fall back to base directory
-    if (AreBaseParamsConfigured()) {
-        return GetDataDir(true) / pathConfigFile;
-    }
-    return basePath;
+    // Fall back to base directory for mainnet
+    return GetDataDir(false) / pathConfigFile;
 }
 
 void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<string> >& mapMultiSettingsRet)
@@ -532,9 +534,10 @@ void UpdateConfigFileKeyBool( const std::string key, bool value )
 
 
     boost::filesystem::path pathConfig = GetConfigFile();
+    LogPrintf("UpdateConfigFileKeyBool: key=%s value=%s path=%s\n", key, stringValue, pathConfig.string());
     std::ifstream streamConfig(pathConfig.string());
     if(!streamConfig || !boost::filesystem::exists(pathConfig))
-        LogPrintf("Error opening files!");
+        LogPrintf("UpdateConfigFileKeyBool: Error opening config file at %s\n", pathConfig.string());
 
     std::set<string> setOptions;
     setOptions.insert("*");
@@ -565,9 +568,16 @@ void UpdateConfigFileKeyBool( const std::string key, bool value )
     std::ofstream newKoreConfig;
     newKoreConfig.open(pathConfig.string().c_str(),fstream::out);
 
-    newKoreConfig << strTemp.str();
+    if (!newKoreConfig.is_open()) {
+        LogPrintf("UpdateConfigFileKeyBool: FAILED to open file for writing: %s\n", pathConfig.string());
+        return;
+    }
 
+    newKoreConfig << strTemp.str();
     newKoreConfig.flush();
+    newKoreConfig.close();
+
+    LogPrintf("UpdateConfigFileKeyBool: Successfully wrote config to %s\n", pathConfig.string());
 }
 
 void CreateTorrcFile(boost::filesystem::path & torDir)

@@ -3,6 +3,9 @@
 
 #include <QDialog>
 #include <QNetworkRequest>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 QT_BEGIN_NAMESPACE
 class QNetworkAccessManager;
@@ -15,7 +18,8 @@ namespace Ui {
 class CaptchaDialog;
 }
 
-const QString torUrl = "https://bridges.torproject.org/bridges";
+// Moat Circumvention API endpoint - provides bridges without captcha
+const QString moatBuiltinUrl = "https://bridges.torproject.org/moat/circumvention/builtin";
 
 class CaptchaDialog : public QDialog
 {
@@ -33,24 +37,21 @@ signals:
 
 private slots:
     void managerFinished(QNetworkReply* reply);
-    void manager2Finished(QNetworkReply* reply);
     void reportSslErrors(QNetworkReply*, const QList<QSslError>&);
 
     void on_okButton_clicked();
     void on_cancelButton_clicked();
     void on_refreshCaptchaButton_clicked();
-    void on_refreshCaptcha_clicked();
 
 private:
 
-    void requestCaptcha();
-    void getBridges(QString & resp);
+    void requestBridges();
+    void parseBridgesFromJson(const QByteArray& data);
 
     Ui::CaptchaDialog *ui;
 
-    QNetworkAccessManager *manager, *manager2;
+    QNetworkAccessManager *manager;
 
-    QString captchaChallengeId;
     QStringList bridges;
 
 };

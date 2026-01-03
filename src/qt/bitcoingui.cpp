@@ -1792,13 +1792,17 @@ void Obfs4ControlLabel::solveCaptcha(bool atLeastEnable)
 {
     CaptchaDialog dlg(this);
     int code = dlg.exec();
+    qDebug() << "solveCaptcha: dialog returned code" << code << "(Accepted=" << QDialog::Accepted << ")";
     if (code == QDialog::Accepted) {
         const QStringList& bridges = dlg.getBridges();
+        qDebug() << "solveCaptcha: got" << bridges.size() << "bridges";
         if (bridges.size() > 0) {
             QByteArray torrcWithoutBridges;
             bool differentBridges = bridges != GUIUtil::retrieveBridgesFromTorrc(torrcWithoutBridges);
+            qDebug() << "solveCaptcha: differentBridges=" << differentBridges << "atLeastEnable=" << atLeastEnable;
             if (differentBridges || atLeastEnable) {
                 // save the bridges and ask to restart
+                qDebug() << "solveCaptcha: calling UpdateConfigFileKeyBool and saveBridges2Torrc";
                 UpdateConfigFileKeyBool("obfs4", true);
                 if (differentBridges)
                     GUIUtil::saveBridges2Torrc(torrcWithoutBridges, bridges);
