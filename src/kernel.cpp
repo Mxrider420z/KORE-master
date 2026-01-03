@@ -302,7 +302,11 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint256& nStakeModifier, bool
     int64_t nStakeModifierSelectionInterval = GetStakeModifierSelectionInterval(pindexFrom->nHeight);
     int64_t nTargetTime = pindexFrom->GetBlockTime() + nStakeModifierSelectionInterval;
     const CBlockIndex* pindex = pindexFrom;
-    CBlockIndex* pindexNext = chainActive[pindexFrom->nHeight + 1];
+    // Use pnext first (works during reindex), fall back to chainActive if needed
+    CBlockIndex* pindexNext = pindexFrom->pnext;
+    if (!pindexNext && chainActive.Height() > pindexFrom->nHeight) {
+        pindexNext = chainActive[pindexFrom->nHeight + 1];
+    }
 
     if (fDebug) {
         LogPrintf("GetKernelStakeModifier coin from             : %d \n", pindexFrom->nHeight);
@@ -324,7 +328,11 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint256& nStakeModifier, bool
         }
 
         pindex = pindexNext;
-        pindexNext = chainActive[pindexNext->nHeight + 1];
+        // Use pnext first (works during reindex), fall back to chainActive if needed
+        pindexNext = pindex->pnext;
+        if (!pindexNext && chainActive.Height() > pindex->nHeight) {
+            pindexNext = chainActive[pindex->nHeight + 1];
+        }
         if (pindex->GeneratedStakeModifier()) {
             nStakeModifierHeight = pindex->nHeight;
             nStakeModifierTime = pindex->GetBlockTime();

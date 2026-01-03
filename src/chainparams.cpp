@@ -170,9 +170,9 @@ public:
         base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1, 233);
         fEnableBigReward               = true;
         nDefaultPort                   = 21743;
-        nHeightToFork                  = 101;
-        nProtocolV3StartHeight         = 0;  // Fresh testnet - V3 from genesis
-        nLastPOWBlock                  = 100;
+        nHeightToFork                  = 101;   // v1 → v2 transition (PoS v2 starts)
+        nProtocolV3StartHeight         = 200;   // v2 → v3 transition (256-bit modifier)
+        nLastPOWBlock                  = 100;   // PoW ends, PoS v1 begins
         vAlertPubKey                   = ParseHex("04cd7ce93858b4257079f4ed9150699bd9f66437ff76617690d1cc180321e94ea391bbccf3bccdcf2edaf0429e32c07b53354e9cecf458cca3fe71dc277f11d9c5");
         strDevFundPubKey               = "04fb16faf70501f5292a630bced3ec5ff4df277d637e855d129896066854e1d2c9d7cab8dbd5b98107594e74a005e127c66c13a918be477fd3827b872b33d25e03";
         vDeployments[DEPLOYMENT_CSV].bit        = 0;

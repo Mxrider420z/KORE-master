@@ -317,6 +317,10 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                     pindexNew->prevoutStake      = diskindex.prevoutStake;
                     pindexNew->nStakeTime        = diskindex.nStakeTime;
                     pindexNew->hashProofOfStake  = diskindex.hashProofOfStake;
+                    // V3 Protocol: Load 256-bit stake modifier for V3+ blocks
+                    if (diskindex.nHeight >= Params().ProtocolV3StartHeight()) {
+                        pindexNew->nStakeModifierV2 = diskindex.nStakeModifierV2;
+                    }
                     bool isProofOfStake = pindexNew->IsProofOfStake(); 
 
                     if (!isProofOfStake && (pindexNew->nStatus & BLOCK_HAVE_DATA)) {
