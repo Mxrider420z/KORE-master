@@ -7,10 +7,13 @@ $(package)_dependencies=libevent openssl zlib
 
 define $(package)_set_vars
 $(package)_config_opts=--prefix=$(host_prefix) --enable-static --disable-shared --disable-asciidoc --disable-system-torrc --disable-lzma --disable-zstd --with-openssl-dir=$(host_prefix) --with-libevent-dir=$(host_prefix) --with-zlib-dir=$(host_prefix) --enable-pic --disable-module-relay --disable-module-dirauth --disable-tool-name-check --disable-unittests
+$(package)_cflags=-I$(host_prefix)/include
+$(package)_ldflags=-L$(host_prefix)/lib
+$(package)_config_env_mingw32=LIBS="-lz -lssl -lcrypto -levent -lws2_32 -liphlpapi -lcrypt32 -lgdi32"
 endef
 
 define $(package)_config_cmds
-	./configure $(host) $($(package)_config_opts)
+	$($(package)_autoconf)
 endef
 
 define $(package)_build_cmds

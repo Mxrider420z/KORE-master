@@ -19,11 +19,11 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_build_cmds
-	$(MAKE) build/libminiupnpc.a $($(package)_build_opts)
+	$(MAKE) libminiupnpc.a $($(package)_build_opts)
 endef
 
 define $(package)_stage_cmds
 	mkdir -p $($(package)_staging_prefix_dir)/include/miniupnpc $($(package)_staging_prefix_dir)/lib &&\
 	install include/*.h $($(package)_staging_prefix_dir)/include/miniupnpc &&\
-	install build/libminiupnpc.a $($(package)_staging_prefix_dir)/lib
+	install libminiupnpc.a $($(package)_staging_prefix_dir)/lib
 endef

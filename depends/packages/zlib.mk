@@ -10,7 +10,7 @@ $(package)_cflags_linux=-fPIC
 endef
 
 define $(package)_config_cmds
-  CFLAGS="$($(package)_cflags)" ./configure $($(package)_config_opts)
+  CC="$($(package)_cc)" AR="$($(package)_ar)" RANLIB="$($(package)_ranlib)" CFLAGS="$($(package)_cflags)" ./configure $($(package)_config_opts)
 endef
 
 define $(package)_build_cmds
