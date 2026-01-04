@@ -14,9 +14,79 @@
 #include "utilstrencodings.h"
 #include <assert.h>
 #include <boost/assign/list_of.hpp>
+#include "momentum.h"
 
 using namespace std;
 using namespace boost::assign;
+
+// Define MINE_GENESIS to mine a new genesis block
+// #define MINE_GENESIS  // DISABLED - Genesis mined 2026-01-04
+
+#ifdef MINE_GENESIS
+#include <cstdio>
+
+static void MineGenesisBlock(CBlock& genesis)
+{
+    printf("=== MINING GENESIS BLOCK ===\n");
+    printf("Message: %u %u %s\n", genesis.vtx[0].vin[0].scriptSig[0],
+           genesis.vtx[0].vin[0].scriptSig[1],
+           HexStr(genesis.vtx[0].vin[0].scriptSig.begin() + 2, genesis.vtx[0].vin[0].scriptSig.end()).c_str());
+    printf("Time: %u\n", genesis.nTime);
+    printf("nBits: 0x%08x\n", genesis.nBits);
+    printf("Merkle Root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+
+    arith_uint256 target;
+    target.SetCompact(genesis.nBits);
+    printf("Target: %s\n", target.ToString().c_str());
+    fflush(stdout);
+
+    uint32_t nonce = 0;
+    while (true) {
+        genesis.nNonce = nonce;
+
+        // Get mid hash (hash up to nonce, before birthday values)
+        uint256 midHash = genesis.GetMidHash();
+
+        // Search for birthday collisions
+        std::vector<std::pair<uint32_t, uint32_t>> collisions = bts::momentum_search(midHash);
+
+        if (!collisions.empty()) {
+            // Found collisions - try each one
+            for (const auto& collision : collisions) {
+                genesis.nBirthdayA = collision.first;
+                genesis.nBirthdayB = collision.second;
+
+                // Get full hash with birthday values
+                uint256 hash = genesis.GetHash();
+                if (UintToArith256(hash) <= target) {
+                    printf("\n=== GENESIS BLOCK FOUND ===\n");
+                    printf("genesis = CreateGenesisBlock(..., %u, %u, %u, %u, 0x%08x, ...);\n",
+                           genesis.nTime, genesis.nNonce, genesis.nBirthdayA, genesis.nBirthdayB, genesis.nBits);
+                    printf("assert(nHashGenesisBlock == uint256S(\"0x%s\"));\n", hash.ToString().c_str());
+                    printf("assert(genesis.hashMerkleRoot == uint256S(\"0x%s\"));\n", genesis.hashMerkleRoot.ToString().c_str());
+                    fflush(stdout);
+                    return;
+                }
+            }
+            printf("\rNonce: %u (checked %zu collisions, no match)", nonce, collisions.size());
+            fflush(stdout);
+        } else {
+            if (nonce % 100 == 0) {
+                printf("\rNonce: %u (no collisions)", nonce);
+                fflush(stdout);
+            }
+        }
+
+        nonce++;
+        if (nonce == 0) {
+            // Overflow - increment time
+            genesis.nTime++;
+            printf("\nTime overflow, incrementing to %u\n", genesis.nTime);
+            fflush(stdout);
+        }
+    }
+}
+#endif
 
 struct SeedSpec6 {
     uint8_t addr[16];
@@ -182,13 +252,19 @@ public:
 
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
 
-        // LOCKED GENESIS (Jan 1, 2026 23:20 UTC-3) - Protocol v3.0
+        // TESTNET V3 GENESIS - Three-Phase Protocol (v1→v2→v3)
         // Message: "Today we start a new Kore age"
-        genesis = CreateGenesisBlock("Today we start a new Kore age", genesisOutputScript, 1767320429, 2117827, 2117827, 2117828, 0x1e0ffff0, 1, 49 * COIN);
+        // Difficulty: 0x200ffff0 (4096x easier than 0x1e0ffff0 for instant mining)
+        genesis = CreateGenesisBlock("Today we start a new Kore age", genesisOutputScript, 1767514213, 0, 16734474, 21261653, 0x200ffff0, 1, 49 * COIN);
+
+#ifdef MINE_GENESIS
+        MineGenesisBlock(genesis);
+#endif
 
         nHashGenesisBlock = genesis.GetHash();
-        assert(nHashGenesisBlock == uint256S("0x00000f84b9e1ac238f80a55aaa840ab720659771ae78bf447cb6e94372e7fb11"));
-        assert(genesis.hashMerkleRoot == uint256S("0x16c4b732261e2203e9cd8b4ce90d3d0ec34b534a6d13b027626d218cb30e370d"));
+        // TESTNET V3 GENESIS - Mined 2026-01-04
+        assert(nHashGenesisBlock == uint256S("0x0e3948142c7b5ea96b5ade4a84570e88903d5ba9fd62b59cab3d72c78bee1e71"));
+        assert(genesis.hashMerkleRoot == uint256S("0x42544244ce5fdbd6441cf090c8b2f2c61e4844ae97280e84c15b47d1cb66051a"));
 
         
         vSeeds.clear(); // [KORE-FIX] Wipe Mainnet seeds first

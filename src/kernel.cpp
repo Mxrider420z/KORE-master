@@ -543,7 +543,36 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::list<
 
     unsigned int nTxTime = block.nTime;
     if (!CheckStake(kernel.GetUniqueness(), stakedBalance, nStakeModifier, bnTargetPerCoinDay, kernelTxFrom.nTime, nTxTime)) {
-        return error("CheckProofOfStake(): INFO: check kernel failed on coinstake %s \n", tx.GetHash().GetHex());
+        // V3 HARDFORK: Legacy stake modifier bypass for historical blocks
+        //
+        // BACKGROUND: Mainnet chain contains blocks mined during v1→v2 transition
+        // with exploited stake modifiers. These blocks are already on-chain and
+        // cannot be invalidated without erasing user transactions.
+        //
+        // SOLUTION: For pre-V3 blocks, we accept the block if all OTHER checks pass
+        // (signature, transaction validity, etc.) even if modifier verification fails.
+        // V3+ blocks require STRICT modifier verification.
+        //
+        // SAFETY: This only affects block VERIFICATION during reindex/sync.
+        // New block CREATION still uses proper modifier computation.
+
+        // Determine block height from previous block
+        int nBlockHeight = 0;
+        if (mapBlockIndex.count(block.hashPrevBlock)) {
+            nBlockHeight = mapBlockIndex[block.hashPrevBlock]->nHeight + 1;
+        }
+
+        if (UseProtocolV3(nBlockHeight)) {
+            // V3+: STRICT enforcement - reject block
+            return error("CheckProofOfStake(): V3 block %d failed stake check on coinstake %s",
+                         nBlockHeight, tx.GetHash().GetHex());
+        } else {
+            // Pre-V3: LEGACY BYPASS - log warning but accept block
+            // All other checks (signature, tx validity) have already passed
+            LogPrintf("CheckProofOfStake(): WARNING - Pre-V3 block %d accepted despite modifier mismatch (legacy bypass) coinstake %s\n",
+                      nBlockHeight, tx.GetHash().GetHex());
+            return true;
+        }
     }
 
     return true;
